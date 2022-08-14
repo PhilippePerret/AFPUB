@@ -11,7 +11,7 @@ ERRORS_DATA = {
   },
   'fr' => {
     cant_op:      "Je ne peux pas procéder à l'opération…", 
-    no_svg_files: "Ce dossier ne contient aucun fichier SVG."
+    no_svg_files: "Ce dossier ne contient aucun fichier SVG.",
   }
 }
 
@@ -24,7 +24,7 @@ MESSAGES_DATA = {
 
   },
   'fr' => {
-    page_out_of_range: 'La page #%i est en dehors du rang à voir.'
+    page_out_of_range: 'La page #%i est en dehors du rang à voir.',
     extract_succeeded: "L'extraction a réussi !\nLe texte complet est dans le fichier './%s/%s'.",
     folder_contains_svgs: "Le dossier courant contient des fichiers SVG. OK.",
     all_svgs_are_correct: "Tous les fichiers SVG sont corrects. OK.",

@@ -5,9 +5,10 @@ To extract text from an Affinity Publisher File.
 ## Extract text
 
 1. [Check the prerequises](#prerequises),
-2. Export your content :
+2. Export the Affinity Publisher Document with:
     - format: SVG (numeric, hight quality), 
-    - per page (not frame).
+    - area: All Pages (not spreads).
+3. Create optionaly some [usefull definitions](#usefull-definitions),
 3. open a new Terminal window at the new SVG folder where .svg exported pages lie,
 4. run `afpub-extract-text` in the Terminal window
 5. find the exported text in the `_<file affixe>_.txt` file at the top of the SVG folder (for instance, if the init file name is `MyBook.afpub`, the text file name would be `_MyBook_.txt`).
@@ -60,13 +61,21 @@ $> afput-extract-text[ options]
                   To define the UI language. Available: 'en' (english)
                   or 'fr' (french).
 ```
+---
+
+<a name="usefull-definitions"></a>
+
+## Usefull extra definitions
+
+You can define some usefull definitions in some files to refine the extraction processus.
 
 ### Treatment as span (not paragraph)
 
-We can define in the `not_paragraphs.txt` file some texts that should not be treated as paragraph even they look like paragraph.
+We can define in the `not_paragraphs.txt` file some texts that should not be treated as paragraph even they look like paragraph. See below.
 
 ~~~
 # in ./not_paragraphs.txt
+
 # A comment ignored
 
 Maj.

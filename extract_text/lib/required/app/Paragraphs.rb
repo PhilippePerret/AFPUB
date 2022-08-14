@@ -30,6 +30,7 @@ REG_START_LINE_GLUES_NEXT_LINE = /^(Les|Le|La|Une|Un|Des)$/
 REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|,)$/
 
 REG_LISTING = / ?([–\-\*•])[ \t]([^–\-\*•]+[,\.])/
+REG_LISTING_NUM = / ?([0-9]+[\)\.]?)[ \t]+(.*?[,\.])/
 
 class << self
 
@@ -40,7 +41,7 @@ class << self
   def not_paragraph?(line)
     not_paragraphs.each do |regexp|
       if line.match?(regexp)
-        puts "+ Line #{line.inspect} n'est pas un paragraphe"
+        verbose? && puts("+ Line #{line.inspect} n'est pas un paragraphe".bleu)
         return true 
       end
     end
@@ -109,10 +110,11 @@ class << self
       .gsub(/ +\./,'.')
       .gsub(REG_KEYS_LIGATURES, TABLE_LIGATURES)
       .gsub(REG_LISTING, "\n\\1 \\2")
-      # .gsub(REG_LISTING, "\n\\1 \\2")
+      .gsub(REG_LISTING_NUM, "\n\\1 \\2")
     
     return text
   end
+
 
 end #/<< self
 end #/class Paragraphs

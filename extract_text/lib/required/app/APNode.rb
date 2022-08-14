@@ -55,6 +55,19 @@ class APNode
       @items << apnode
     end
 
+    # @param tl {Point} Le point Top-Left
+    # @param tr {Point} Le point Top-Bottom
+    # @param bl {Point} Le point Bottom-Left
+    # @param br {Point} Le point Bottom-Right
+    def deform_by_matrix(tl, tr, bl, br, matrix)
+      return [
+        tl.dup.deform(matrix),
+        tr.dup.deform(matrix),
+        bl.dup.deform(matrix),
+        br.dup.deform(matrix),
+      ]    
+    end
+
   end #/<< self
 
   attr_reader :svgfile
@@ -128,5 +141,28 @@ class APNode
   end
 
 
+
 end #/class APNode
+
+class Point
+  attr_reader :x, :y
+  def initialize x, y
+    @x = x
+    @y = y
+  end
+  def inspect
+    "x:#{x} y:#{y}"
+  end
+  def deform(matrix)
+    a, b, c, d, e, f = matrix
+    oldx = x.freeze
+    oldy = y.freeze
+    @x = a * oldx + c * oldy + e  
+    @y = b * oldx + d * oldy + f
+
+    return self
+  end
+end
+
+
 end #/module AfPub
