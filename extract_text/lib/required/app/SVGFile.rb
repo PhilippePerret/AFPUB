@@ -2,6 +2,8 @@
 module AfPub
 class SVGFile
 
+  class FalseErrorNodeFind < StandardError; end
+
   attr_reader :path
 
   def initialize(path)
@@ -16,15 +18,22 @@ class SVGFile
   # @return {String} The whole text or nil if empty
   # 
   def extract_text
-    text = proceed_extraction
-    if text == ''
+    lines = proceed_extraction
+    if lines.empty?
       return nil
     else
+      paragraphs = AfPub::Paragraphs.compact(lines)
+      text = paragraphs.join(options[:paragraph_delimiter])
+      text = AfPub::Paragraphs.finalize(text)
       if options[:page_number]
         titre_page = "Page ##{page_number}"
         text = "\n\n#{titre_page}\n#{'-'*titre_page.length}\n\n#{text}"
       end
 
+      puts "\n\n\n+++ FINAL TEXT #{'<'*60}\n#{text}\n#{'>'*80}" if debug?
+      #
+      # The final text
+      # 
       return text
     end
   end
@@ -32,57 +41,103 @@ class SVGFile
   ##
   # Extraction of all texts from all <text> tags in the SVG file
   # 
+  # @return {Array of Strings} texts, all texts 
+  # 
   def proceed_extraction
+    puts "--- Extraction page #{page_number}".bleu if debug?
     APNode.reset
-    text = []
+    texts = []
     paragraphs = []
     paragraph  = ''
 
-    xdoc = Nokogiri::XML(File.read(path))
-    # 
-    # All <text> nodes
-    # 
-    nodes = xdoc.css('text')
-    # puts "[page #{page_number}] Nombre de text nodes : #{nodes.count}"
-
-    # 
-    # Loop over every <text> node of the document
-    # to make {APNode} node instances.
-    # 
-    nodes = nodes.map.with_index do |node, idx|
-      # Debug
-      # puts "#{node.name} = #{node.text}"
-      # 
-      # Passed through nodes 
-      # 
-      next if node.text.match(/^[0-9]+$/)
-      # 
-      # {AFNode} instance
-      # 
-      APNode.new(node, idx)
-    end.compact
-
     #
-    # Text can be placed after another even if it is above. We check
-    # the x and y node attributes to check the right position.
+    # We can extract all texts from nodes
     # 
-    nodes.each do |node|
-      # Here, +node+ is an {AFNode} instance
-      puts "node x y : #{node.x} #{node.y}"
-      puts "node.deltax_with_previous = #{node.deltax_with_previous}"
-      puts "node.deltay_with_previous = #{node.deltay_with_previous}"
-    end.compact
+    sorted_text_nodes.each do |node|
+      texts << node.text
+    end
 
-    
-    return text.join(options[:text_delimiter])
+    return texts.compact
   end
   #/proceed_extraction
+
+  ##
+  # @return text nodes sorted such as a text before is a node before
+  # Otherwise, in SVG code (remember: it's a image), some text node 
+  # can be at the wrong place in the code flow
+  #
+  def sorted_text_nodes
+    @sorted_text_nodes ||= begin
+      text_nodes.dup.each do |node|
+        #
+        # OK if the node is at the right place
+        #
+        next unless node.far_from_previous?
+        #
+        # ELSE, search for the right place for the node
+        # 
+        # puts "Le noeud #{node.inspect} est trop loin de son précédent (#{node.previous.inspect}."
+        APNode.delete_at(node.index)
+        searched_index = nil
+        #
+        # Loop on every node except the +node+ one.
+        # 
+        APNode.eachNode do |cnode|
+          begin
+            if cnode.y > node.y && cnode.x > node.y
+              raise FalseErrorNodeFind
+            elsif cnode.y + 100 > node.y
+              raise FalseErrorNodeFind
+            end
+          rescue FalseErrorNodeFind
+            searched_index = cnode.index.dup.freeze
+            break
+          end
+        end
+        # 
+        # Insert the node at the right place
+        # 
+        if searched_index.nil?
+          APNode.add(node)
+        else
+          APNode.insert_at(node, searched_index)
+        end
+      end
+
+      APNode.items # => sorted_text_nodes
+    end
+  end
+
+  ##
+  # @return text nodes (only the right ones) as {APNode} instances
+  # 
+  def text_nodes
+    @text_nodes ||= begin
+      xdoc = Nokogiri::XML(File.read(path))
+      # 
+      # Loop over every <text> node of the document
+      # to make {APNode} node instances.
+      # 
+      nodes = xdoc.css('text').reject do |node|
+        # 
+        # Excludes some nodes 
+        # 
+        node.text.match(/^[0-9]+$/)
+      end.map.with_index do |node, idx|
+        # 
+        # {AFNode} instance
+        # 
+        APNode.new(self, node, idx)
+      end
+    end
+  end
 
   def options
     @options ||= begin
       {
-        text_delimiter: "\n",
-        page_number:    true
+        paragraph_delimiter: "\n\n",
+        page_number:    true,
+        column_width:   1000,
       }
     end
   end
