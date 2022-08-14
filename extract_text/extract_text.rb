@@ -7,7 +7,8 @@
 =end
 require_relative 'lib/required'
 begin
-  AfPub::ExtractedFile.current_folder
+  AfPub::Options.define_errors_and_messages
+  AfPub::ExtractedFile.current_folder.proceed
 rescue Exception => e
   puts e.message.rouge
   puts e.backtrace.join("\n").rouge

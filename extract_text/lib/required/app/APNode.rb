@@ -12,7 +12,7 @@ class APNode
   class << self
 
     attr_reader :items
-    
+
     ##
     # @return APNode with +index+ index
     # 
@@ -85,7 +85,7 @@ class APNode
         return false
       else
         # <= previous is lower (> 100)
-        if deltax_with_previous > svgfile.options[:column_width]
+        if deltax_with_previous > Options.column_width
           # <= text is on the right column
           # => ok
           return false

@@ -22,13 +22,30 @@ REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.)]/
 # If the beginning of a line match this regexp, no white space must
 # be added at the end of the previous paragraph.
 REG_START_LINE_NO_SPACE = /^(er|re|e|\.)( |$)/
-# If the line is one of these, next line must be glued to it
-REG_START_LINE_GLUE_NEXT_LINE = /^(Les|Le|La)$/
+# If the line is one of these, next line must be glued to it  (with 
+# a white space)
+REG_START_LINE_GLUES_NEXT_LINE = /^(Les|Le|La|Une|Un|Des)$/
+# If the line ends with one of these, next line must be glued to
+# it (with a white space)
+REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|,)$/
 
-END_LINE_NO_RETURN = []
+REG_LISTING = / ?([–\-\*•])[ \t]([^–\-\*•]+[,\.])/
 
 class << self
 
+  def not_paragraphs
+    @not_paragraphs ||= Options.not_paragraphs
+  end
+
+  def not_paragraph?(line)
+    not_paragraphs.each do |regexp|
+      if line.match?(regexp)
+        puts "+ Line #{line.inspect} n'est pas un paragraphe"
+        return true 
+      end
+    end
+    return false
+  end
 
   ##
   # Receive a list of {String} texts, with paragraphs cutted as in
@@ -47,13 +64,15 @@ class << self
   #     ]
   def compact(lines)
     paragraphs = [''] # if the first line starts with '[a-z]'
-    glue_to_previous = false
+    glue_next_to_previous = false
     # 
     # Loop on every line
     # 
     lines.each do |line|
       puts "--line: #{line.inspect}" if debug?
-      if glue_to_previous
+      if glue_next_to_previous
+        paragraphs[-1] << ' ' + line
+      elsif not_paragraphs && not_paragraph?(line)
         paragraphs[-1] << ' ' + line
       elsif line.match(REG_START_LINE_NO_NEW_PARAGRAPH)
         # Which separator ?
@@ -63,7 +82,9 @@ class << self
         # A very new paragraph
         paragraphs << line
       end
-      glue_to_previous = line.match?(REG_START_LINE_GLUE_NEXT_LINE)
+      glue_next_to_previous = 
+        line.match?(REG_START_LINE_GLUES_NEXT_LINE) || 
+        line.match?(REG_END_LINE_GLUES_NEXT_LINE)
     end
     #
     # Pull the first added paragraph if it is empty
@@ -87,6 +108,8 @@ class << self
     text = text
       .gsub(/ +\./,'.')
       .gsub(REG_KEYS_LIGATURES, TABLE_LIGATURES)
+      .gsub(REG_LISTING, "\n\\1 \\2")
+      # .gsub(REG_LISTING, "\n\\1 \\2")
     
     return text
   end

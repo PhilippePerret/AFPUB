@@ -22,17 +22,29 @@ class SVGFile
     if lines.empty?
       return nil
     else
+      #
+      # Last treatments of paragraphs
+      # 
       paragraphs = AfPub::Paragraphs.compact(lines)
-      text = paragraphs.join(options[:paragraph_delimiter])
+      #
+      # Compact text
+      # 
+      text = paragraphs.join(Options.paragraph_separator)
+      # 
+      # Last traitment of text
+      # 
       text = AfPub::Paragraphs.finalize(text)
-      if options[:page_number]
+      # 
+      # Add Page Number Mark if required
+      # 
+      if Options.page_number?
         titre_page = "Page ##{page_number}"
         text = "\n\n#{titre_page}\n#{'-'*titre_page.length}\n\n#{text}"
       end
 
       puts "\n\n\n+++ FINAL TEXT #{'<'*60}\n#{text}\n#{'>'*80}" if debug?
       #
-      # The final text
+      # Return the final text
       # 
       return text
     end
@@ -47,8 +59,6 @@ class SVGFile
     puts "--- Extraction page #{page_number}".bleu if debug?
     APNode.reset
     texts = []
-    paragraphs = []
-    paragraph  = ''
 
     #
     # We can extract all texts from nodes
@@ -132,19 +142,10 @@ class SVGFile
     end
   end
 
-  def options
-    @options ||= begin
-      {
-        paragraph_delimiter: "\n\n",
-        page_number:    true,
-        column_width:   1000,
-      }
-    end
-  end
-
   def page_number
     @page_number ||= File.basename(path).match(/_([0-9]+)\.svg$/).to_a[1].to_i
   end
+
 
 end #/SVGFile
 end #/module AfPub

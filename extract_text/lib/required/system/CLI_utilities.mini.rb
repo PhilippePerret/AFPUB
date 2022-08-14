@@ -6,7 +6,6 @@
   (cf. l'historique en bas de fichier)
 
 =end
-require 'terminal-notifier'
 require_relative 'Config'
 
 # Fichier où sont définis les alias, pour pouvoir utiliser la 
@@ -19,26 +18,6 @@ end
 
 def ecrit(str)
   STDOUT.puts(str)
-end
-
-# @return la largeur en colonnes de la console
-def console_width
-  `tput cols`.strip.to_i
-end
-alias :console_cols :console_width
-
-# @return la hauteur en nombre de lignes de la console
-def console_height
-  `tput lines`.strip.to_i
-end
-alias :console_lines :console_height
-
-def run_alias(alias_cmd)
-  @rc_file ||= File.join(Dir.home,RC_FILE_NAME).tap do |pth|
-    File.exist?(pth) || raise("Impossible de jouer #{alias_cmd.inspect}. Le fichier contenant les alias est introuvable, il faut définir RC_FILE_NAME dans #{__FILE__}.")
-  end
-  res = `bash -c ". #{@rc_file}; shopt -s expand_aliases\n#{alias_cmd}" 2>&1`
-  return res
 end
 
 class Cleaner
@@ -93,12 +72,6 @@ alias :tests? :test?
 
 def dont_clear(value = true)
   CLEANER.dont_clear(value)
-end
-
-
-# True si ce sont des tests d'intégration
-def test_integration?
-  :TRUE == @isintegrationtests ||= true_or_false(ENV['MODE_CLI_TEST'] == "true")
 end
 
 ##
@@ -220,21 +193,6 @@ def proceed_with_message(msg, &block)
   end
   return res
 end
-
-#
-# @param  params {Hash}
-#         :title      Le titre
-#         :subtitle   Le sous-titre
-#         :open       Le fichier/url/dossier à ouvrir
-#         :execute    Le code à exécuter
-#         :activate   Pour activer une application par son identifiant (p.e. com.apple.safari)
-#         :appIcon    L'icone (ça ne fonctionne pas)
-#
-def notify(msg, params = nil)
-  params ||= {}
-  TerminalNotifier.notify(msg, params)
-end
-
 
 =begin
 

@@ -1,17 +1,18 @@
 # encoding: UTF-8
 module AfPub
 class ExtractedFile
+  class << self
+    ##
+    # = main point d'entrée =
+    # 
+    # Extrait le text from all the SVG files of the current
+    # folder
+    # 
+    def current_folder
+      @current_folder ||= ExtractedFile.new(File.expand_path('.'))
+    end
 
-  ##
-  # = main point d'entrée =
-  # 
-  # Extrait le text from all the SVG files of the current
-  # folder
-  # 
-  def self.current_folder
-    ExtractedFile.new(File.expand_path('.')).proceed
-  end
-
+  end #/<< self
 
   attr_reader :folder_path
 
@@ -26,7 +27,6 @@ class ExtractedFile
   # Proceed to extraction
   # 
   def proceed
-    puts "Je dois apprendre à procéder à l'extraction du dossier #{folder_path.inspect}.".jaune
     folder_conform? || return
     export_all_svgs
   end
@@ -35,12 +35,23 @@ class ExtractedFile
 
     File.delete(text_file_path) if File.exist?(text_file_path)
 
+
+    verbose? && puts("Options.pages_range: #{Options.pages_range}".bleu)
+
+
     flux = File.open(text_file_path,'a')
     begin
       # 
       # Loop on sorted svg files
       # 
       sorted_svg_files.each do |svg_file|
+        # 
+        # In range of files?
+        # 
+        if not Options.page_in_range?(svg_file.page_number)
+          verbose? && puts((MESSAGES[:page_out_of_range] % [svg_file.page_number]).bleu)
+          next
+        end
         # 
         # Extract text from svg file
         # 
@@ -53,7 +64,8 @@ class ExtractedFile
     rescue Exception => e
       puts "#{e.message}\n#{e.backtrace.join("\n")}".rouge
     else
-      puts "Extraction succeeds!\nThe whole text is in the './#{folder_name}/#{text_file_name}' file.\n\n".vert
+      puts (MESSAGES[:extract_succeeded] % [folder_name, text_file_name]).vert
+      puts "\n\n"
     ensure
       flux.close
     end
@@ -88,7 +100,7 @@ class ExtractedFile
   # 
   def folder_conform?
     svg_files.count > 0 || raise(ERRORS[:no_svg_files])
-    puts "Folder contains SVG files. OK.".vert
+    puts MESSAGES[:folder_contains_svgs].vert
 
     # "fi" stands for "first"
     fi_svg = svg_files.first
@@ -106,10 +118,10 @@ class ExtractedFile
     svg_files.each do |fpath|
       File.basename(fpath).match?(file_regexp) || raise(ERRORS[:bad_file_affixe] % [File.basename(fpath), @document_affixe] )
     end
-    puts "All SVG files are correct. OK.".vert
+    puts MESSAGES[:all_svgs_are_correct].vert
 
   rescue Exception => e
-    puts "\n\n#{e.message}\nI can't operate.\n\n".rouge
+    puts "\n\n#{e.message}\n#{ERRORS[:cant_op]}\n\n".rouge
     return false
   else
     return true
@@ -133,8 +145,4 @@ class ExtractedFile
 
 end #/class ExtractFile
 
-ERRORS = {
-  no_svg_files: "No SVG files in that folder!",
-  bad_file_affixe: "The '%s' file name doesn't match the document affixe (%s).\n*** The folder should only contains exported SVG files from the Affinity Publisher document ***."
-}
 end #/module AfPub
