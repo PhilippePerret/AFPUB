@@ -1,6 +1,6 @@
 # Extract-text
 
-To extract text from a Affinity Publisher File.
+To extract text from an Affinity Publisher File.
 
 ## Extract text
 
