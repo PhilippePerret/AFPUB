@@ -6,11 +6,11 @@ To extract text from a Affinity Publisher File.
 
 1. [Check the prerequises](#prerequises),
 2. Export your content :
-  - SVG format (numeric, hight quality), 
-  - per page (not frame).
+    - format: SVG (numeric, hight quality), 
+    - per page (not frame).
 3. open a new Terminal window at the new SVG folder where .svg exported pages lie,
 4. run `afpub-extract-text` in the Terminal window
-5. find the exported text in the `_<file affix>_.txt` file at the top of the SVG folder.
+5. find the exported text in the `_<file affixe>_.txt` file at the top of the SVG folder (for instance, if the init file name is `MyBook.afpub`, the text file name would be `_MyBook_.txt`).
 
 
 ## Annexe
@@ -19,11 +19,12 @@ To extract text from a Affinity Publisher File.
 
 ### Prerequises
 
-* Ruby > 2.6 up and running
+* [Ruby](https://www.ruby-lang.org) > 2.6 up and running
+* [Nokogiri gem](http://nokogiri.org) (`gem install nokogiri`)
 * `afpub-extract-text` alias :
 
   ```
   cd /path/to/this/folder/extract_text
   chmod +x ./extract_text.rb
-  ls -s ./extract_text.rb /usr/local/bin/afpub-extract-text
+  ln -s /path/to/this/folder/extract_text/extract_text.rb /usr/local/bin/afpub-extract-text
   ```
