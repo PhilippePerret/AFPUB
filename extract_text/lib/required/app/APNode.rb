@@ -87,8 +87,17 @@ class APNode
 
   def x ; @x ||= node['x'][0..-3].to_i end
   def y ; @y ||= node['y'][0..-3].to_i end
+  def point
+    @point ||= Point.new(x, y)
+  end
   def text ; @text ||= node.text end
 
+  ##
+  # @return TRUE if current node is after +node+ node
+  #
+  def after?(node)
+    self.point.after?(node.point)
+  end
 
   def far_from_previous?
     if previous && deltay_with_previous.abs > 100

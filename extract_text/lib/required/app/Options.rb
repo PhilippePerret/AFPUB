@@ -31,6 +31,7 @@ class << self
   end
 
   # @return TRUE if text +node+ must be excluded.
+  # @param node {APNode} The text node
   def exclude_node?(node)
     return false if exclude_nodes.nil?
     exclude_nodes.each do |regexp|
@@ -55,26 +56,6 @@ class << self
 
   # --- /public methods ---
 
-
-  ##
-  # Read +filename+ (a file name in main SVG folder) and returns
-  # all expression as regular expression to filter the text nodes.
-  # 
-  def read_definitions_in(filename)
-    path = File.join(ExtractedFile.current_folder.folder_path,filename)
-    if File.exist?(path)
-      File.readlines(path).map do |line|
-        line = line.strip
-        next if line.start_with?('#') || line == ''
-        puts "line not paragraph: #{line}"
-        if line.start_with?('/')
-          eval(line)
-        else
-          /^#{line}$/
-        end
-      end.compact
-    end
-  end
 
   def exclude_nodes 
     @exclude_nodes ||= read_definitions_in('exclude_nodes')
@@ -129,6 +110,29 @@ class << self
   def define_errors_and_messages
     Object.const_set('ERRORS',    ERRORS_DATA[lang])
     Object.const_set('MESSAGES',  MESSAGES_DATA[lang])
+  end
+
+
+private
+
+  ##
+  # Read +filename+ (a file name in main SVG folder) and returns
+  # all expression as regular expression to filter the text nodes.
+  # 
+  def read_definitions_in(filename)
+    path = File.join(ExtractedFile.current_folder.folder_path,filename)
+    if File.exist?(path)
+      File.readlines(path).map do |line|
+        line = line.strip
+        next if line.start_with?('#') || line == ''
+        verbose? && puts("line not paragraph: #{line}")
+        if line.start_with?('/')
+          eval(line)
+        else
+          /^#{line}$/
+        end
+      end.compact
+    end
   end
 
 end #/<< class

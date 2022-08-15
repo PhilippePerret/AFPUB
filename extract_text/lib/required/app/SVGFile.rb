@@ -56,14 +56,14 @@ class SVGFile
   # @return {Array of Strings} texts, all texts 
   # 
   def proceed_extraction
-    puts "--- Extraction page #{page_number}".bleu if debug?
+    debug? && puts("--- Extraction page #{page_number}".bleu)
     APNode.reset
     texts = []
 
     #
     # We can extract all texts from nodes
     # 
-    sorted_text_nodes.each do |node|
+    text_nodes.each do |node|
       texts << node.text
     end
 
@@ -71,92 +71,94 @@ class SVGFile
   end
   #/proceed_extraction
 
-  ##
-  # @return text nodes sorted such as a text before is a node before
-  # Otherwise, in SVG code (remember: it's a image), some text nodes 
-  # can be at the wrong place in the SVGcode flow
-  # Overall, text tag can be inside a g tag with transformation.
-  #
-  def sorted_text_nodes
-    @sorted_text_nodes ||= begin
-      text_nodes.dup.each do |node|
-        #
-        # OK if the node is at the right place
-        #
-        next unless node.far_from_previous?
-        #
-        # ELSE, search for the right place for the node
-        # 
-        # puts "Le noeud #{node.inspect} est trop loin de son précédent (#{node.previous.inspect}."
-        APNode.delete_at(node.index)
-        searched_index = nil
-        #
-        # Loop on every node except the +node+ one.
-        # 
-        APNode.eachNode do |cnode|
-          begin
-            if cnode.y > node.y && cnode.x > node.y
-              raise FalseErrorNodeFind
-            elsif cnode.y + 100 > node.y
-              raise FalseErrorNodeFind
-            end
-          rescue FalseErrorNodeFind
-            searched_index = cnode.index.dup.freeze
-            break
-          end
-        end
-        # 
-        # Insert the node at the right place
-        # 
-        if searched_index.nil?
-          APNode.add(node)
-        else
-          APNode.insert_at(node, searched_index)
-        end
-      end
-
-      APNode.items # => sorted_text_nodes
-    end
-  end
 
   ##
-  # Return text nodes 
-  # ------------------
+  # Text nodes 
+  # ----------
   # Some of them are in a <g> tag with matrix transformation so we
   # must calculate the real positions (x, y).
   # 
-  # @return text nodes (only the right ones) as {APNode} instances
-  # 
+  # @return text nodes as {APNode} instances
+  #   - sorted
+  #   - only the right ones (exclusion)
   # 
   def text_nodes
-    @text_nodes ||= begin
-      xdoc = Nokogiri::XML(File.read(path))
-      xdox.css('text,g').each do |node|
-        puts "\n+++ node: #{node.inspect}"
-      end
-      exit 0 # POUR VOIR JUSTE ÇA
-    end
+    @text_nodes ||= get_text_nodes
   end
-  def text_nodes_OLD
-    @text_nodes ||= begin
-      xdoc = Nokogiri::XML(File.read(path))
-      # 
-      # Loop over every <text> node of the document
-      # to make {APNode} node instances.
-      # 
-      nodes = xdoc.css('text').reject do |node|
+  def get_text_nodes
+    xdoc = Nokogiri::XML(File.read(path))
+    verbose? && puts("* Get text nodes in #{path}".bleu)
+    text_tag_index = 0
+    node_groupes = []
+    xdoc.css('svg > text, svg > g').each do |node|
+      if node.name == 'text'
+        inode = APNode.new(self, node, text_tag_index)
+        text_tag_index += 1
         # 
-        # Excludes some nodes 
+        # Le groupe, même s'il n'aura qu'un seul élément
         # 
-        Options.exclusions && Options.excluded_node?(node)
-      end.map.with_index do |node, idx|
+        igroup = APNodeGroup.new(nil)
+        igroup.add_text_node(inode)
+        verbose? && puts("+++ relève de text node (#{igroup.point.inspect}) : #{node.text}")
+      else
         # 
-        # {AFNode} instance
+        # Traitement d'un groupe de texte (g)
         # 
-        APNode.new(self, node, idx)
+        # Note : on ne reclasse pas les lignes à l'intérieur 
+        # d'un groupe de texts. C'est seulement les groupes 
+        # ensemble qu'il faut classer.
+        # 
+        # Note 2 : on n'est pas sûr qu'un groupe contienne des
+        # noeuds textuels. Donc on les relève d'abord, avant de
+        # créer l'instance.
+        # 
+        text_node_list = []
+        debug_list = []
+        node.css('text').each do |cnode|
+          debug_list << "+++ relève de text node in g : #{cnode.text}"
+          text_node_list << APNode.new(self, cnode, text_tag_index)
+          text_tag_index += 1
+        end
+        if text_node_list.any?
+          igroup = APNodeGroup.new(node)
+          igroup.text_nodes = text_node_list
+          if verbose?
+            puts "\n+++ Groupe <g> (#{igroup.point.inspect})"
+            puts debug_list.join("\n")
+          end
+        end
+      end
+    end#/ xdoc.css.each
+    
+    # 
+    # Nodes sorting
+    #
+    # Cela consiste à classer d'abord les groupes de noeud puis
+    # à prendre leurs textes dans l'ordre
+    # 
+    nodes = []
+    APNodeGroup.groups.sort do |agroup, bgroup|
+      agroup.after?(bgroup) ? -1 : 1
+    end.each do |group|
+      nodes += group.text_nodes
+    end
+
+    #
+    # Nodes exclusion (if any)
+    # 
+    nodes = nodes.reject do |node|
+      Options.exclude_nodes && Options.excluded_node?(node)        
+    end
+
+    if verbose? || debug?
+      nodes.each do |node|
+        puts "-- #{node.text}"
       end
     end
+
+    return nodes
   end
+  #/get_text_nodes
 
   def page_number
     @page_number ||= File.basename(path).match(/_([0-9]+)\.svg$/).to_a[1].to_i

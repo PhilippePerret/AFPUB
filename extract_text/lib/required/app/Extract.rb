@@ -28,18 +28,6 @@ class ExtractedFile
   # Proceed to extraction
   # 
   def proceed
-
-    tl = Point.new(10,10)
-    tr = Point.new(40,10)
-    bl = Point.new(10,30)
-    br = Point.new(40,30)
-
-    ntl, ntr, nbl, nbr = APNode.deform_by_matrix(tl, tr, bl, br, [3,1,-1,3,30,40])
-
-    puts "#{{ ntl: ntl.inspect, ntr:ntr.inspect, nbl: nbl.inspect, nbr: nbr.inspect }.inspect}"
-
-    return
-
     folder_conform? || return
     export_all_svgs
   end

@@ -1,14 +1,41 @@
 # encoding: UTF-8
 module AfPub
 class Point
+  
+  Y_TOLERANCE = 70
+
   attr_reader :x, :y
   def initialize x, y
     @x = x
     @y = y
   end
-  
+
   def inspect
     "<<<Point x:#{x} y:#{y}>>>"
+  end
+
+  # @return TRUE if current point is "after" +point+
+  # "after" means :
+  #   - more to the bottom > 70
+  #   - more to the right if at same top
+  def after?(point)
+    if point.y + Y_TOLERANCE < self.y
+      # 
+      # +point+ est plus haut
+      # 
+      return false
+    elsif point.y > self.y + Y_TOLERANCE
+      # 
+      # +point+ est plus bas
+      # 
+      return true
+    else
+      # 
+      # +point+ est à la même hauteur (avec la
+      # tolérance)
+      # 
+      return point.x > self.x
+    end
   end
 
   ##

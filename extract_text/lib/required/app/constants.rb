@@ -12,6 +12,7 @@ ERRORS_DATA = {
   'fr' => {
     cant_op:      "Je ne peux pas procéder à l'opération…", 
     no_svg_files: "Ce dossier ne contient aucun fichier SVG.",
+    bad_file_affixe: "Le fichier '%s' ne correspond pas à l’affixe (%s).\n*** The dossier de l'extraction ne devrait contenir que les .svg provenant du document Affinity Publisher (et tout autre fichier avec une autre extension, bien sûr) ***.",
   }
 }
 
