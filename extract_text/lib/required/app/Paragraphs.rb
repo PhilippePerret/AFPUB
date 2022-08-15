@@ -18,7 +18,7 @@ REG_KEYS_LIGATURES = /[#{keys}]/
 
 # If the beginning of a line match this regexp, it must be glued to
 # the previous paragraph (maybe with a white space, see below).
-REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.)]/
+REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.]/
 # If the beginning of a line match this regexp, no white space must
 # be added at the end of the previous paragraph.
 REG_START_LINE_NO_SPACE = /^(er|re|e|\.)( |$)/
@@ -27,10 +27,27 @@ REG_START_LINE_NO_SPACE = /^(er|re|e|\.)( |$)/
 REG_START_LINE_GLUES_NEXT_LINE = /^(Les|Le|La|Une|Un|Des)$/
 # If the line ends with one of these, next line must be glued to
 # it (with a white space)
-REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|,)$/
+REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|du|de|,)$/
 
 REG_LISTING = / ?([–\-\*•])[ \t]([^–\-\*•]+[,\.])/
 REG_LISTING_NUM = / ?([0-9]+[\)\.]?)[ \t]+(.*?[,\.])/
+
+REG_GUIL_OPEN_NOT_END_PARAGRAPH = /(«[^»]*|\([^\)]*)$/
+class MonTest < MiniTest::Test
+  def test_guil_or_par_end_line
+    matches = ['du texte «', 'du texte « V', 'et comme lui (', 'et (si']
+    matches.each do |str|
+      debug? && puts("#{str.inspect}.match?(#{REG_GUIL_OPEN_NOT_END_PARAGRAPH}): #{str.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH)}")
+      assert(str.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH))
+    end    
+    not_matches = ['»', '« le »', '(et)']
+    not_matches.each do |str|
+      debug? && puts("#{str.inspect}.match?(#{REG_GUIL_OPEN_NOT_END_PARAGRAPH}): #{str.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH)}")
+      refute(str.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH))
+    end
+  end
+end
+test? && MiniTest.run
 
 class << self
 
@@ -49,19 +66,41 @@ class << self
   #     [
   #       "C'est la 1re fois pour moi."
   #     ]
+  #
+  #
+  # New principle
+  # -------------
+  #   - tout ce qui ne termine pas par un point final (point, point
+  #     d'exclamation, point d'interrogation) ne peut pas être 
+  #     considéré comme un paragraphe fini. => la suite doit lui être
+  #     collée.
+  #   - SAUF si la suite commence par une capitable
+  # 
   def compact(lines)
     paragraphs = [''] # if the first line starts with '[a-z]'
     glue_next_to_previous = false
+
+    deep_debug = true
+
     # 
     # Loop on every line
     # 
     lines.each do |line|
-      puts "--line: #{line.inspect}" if debug?||verbose?
+      puts "--line: #{line.inspect}" #if debug?||verbose?
+      if deep_debug
+        puts "  (glue_next_to_previous = #{glue_next_to_previous.inspect})"
+        puts "  REG_START_LINE_NO_NEW_PARAGRAPH : #{line.match?(REG_START_LINE_NO_NEW_PARAGRAPH).inspect}"
+        puts "  REG_START_LINE_NO_SPACE         : #{line.match?(REG_START_LINE_NO_SPACE).inspect}"
+        puts "  REG_START_LINE_GLUES_NEXT_LINE  : #{line.match?(REG_START_LINE_GLUES_NEXT_LINE).inspect}"
+        puts "  REG_END_LINE_GLUES_NEXT_LINE    : #{line.match?(REG_END_LINE_GLUES_NEXT_LINE).inspect}"
+        puts "  REG_GUIL_OPEN_NOT_END_PARAGRAPH : #{line.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH).inspect}"
+      end
+
       if glue_next_to_previous
         paragraphs[-1] << ' ' + line
       elsif Options.not_paragraph?(line)
         paragraphs[-1] << ' ' + line
-      elsif line.match(REG_START_LINE_NO_NEW_PARAGRAPH)
+      elsif line.match?(REG_START_LINE_NO_NEW_PARAGRAPH)
         # Which separator ?
         sep = line.match?(REG_START_LINE_NO_SPACE) ? '' : ' '
         paragraphs[-1] << sep + line
@@ -71,7 +110,9 @@ class << self
       end
       glue_next_to_previous = 
         line.match?(REG_START_LINE_GLUES_NEXT_LINE) || 
-        line.match?(REG_END_LINE_GLUES_NEXT_LINE)
+        line.match?(REG_END_LINE_GLUES_NEXT_LINE) ||
+        line.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH)
+      verbose? && glue_next_to_previous && "  -> Le prochain texte doit coller."
     end
     #
     # Pull the first added paragraph if it is empty
@@ -98,6 +139,12 @@ class << self
       .gsub(REG_LISTING, "\n\\1 \\2")
       .gsub(REG_LISTING_NUM, "\n\\1 \\2")
     
+    if Options.only_single_spaces?
+      text = text
+        .gsub(/  +/,' ')
+        .gsub(/\t/, ' ')
+    end
+
     return text
   end
 

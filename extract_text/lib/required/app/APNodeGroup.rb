@@ -22,8 +22,12 @@ class APNodeGroup
     attr_reader :groups
 
     def add(group)
-      @groups ||= []
       @groups << group
+    end
+
+    # For each page
+    def reset
+      @groups = []
     end
 
   end #/<< self class

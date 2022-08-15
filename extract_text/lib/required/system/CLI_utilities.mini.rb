@@ -153,6 +153,7 @@ def help?
   cli?('help') || cli?('-h') || cli?('--help') || cli?('--aide') || cli?('aide')
 end
 
+# Utilie pour l'option --debug
 alias :console_puts :puts
 def puts(msg)
   if debug?

@@ -60,6 +60,14 @@ $> afput-extract-text[ options]
 
                   To define the UI language. Available: 'en' (english)
                   or 'fr' (french).
+                  
+--single_space=true|false
+
+									To replace every tabulation and double space with single 
+									white space. 
+									Default: true
+									Example:
+											--single_space=false
 ```
 ---
 
@@ -133,6 +141,7 @@ NiemeException
 
 * [Ruby](https://www.ruby-lang.org) > 2.6 up and running
 * [Nokogiri gem](http://nokogiri.org) (`gem install nokogiri`)
+* Gem minitest-color (`gem install minitest-color`)
 * `afpub-extract-text` alias :
 
   ```

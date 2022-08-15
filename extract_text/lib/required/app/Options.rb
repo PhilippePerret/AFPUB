@@ -21,13 +21,12 @@ class << self
 
   # @return TRUE if page number mark is to be written
   def page_number?
-    @page_number ||= begin
-      if CLI.options.key?(:page_number)
-        CLI.options[:page_number] == 'true'
-      else
-        true
-      end
-    end
+    :TRUE == @page_number ||= true_or_false(not(CLI.options[:page_number] == 'false'))
+  end
+
+  # @return TRUE if we don't want tabulation or double space
+  def only_single_spaces?
+    :TRUE == @only_single_spaces ||= true_or_false(not(CLI.options[:single_space] == 'false'))
   end
 
   # @return TRUE if text +node+ must be excluded.

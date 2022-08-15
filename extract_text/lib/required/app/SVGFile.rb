@@ -58,16 +58,10 @@ class SVGFile
   def proceed_extraction
     debug? && puts("--- Extraction page #{page_number}".bleu)
     APNode.reset
-    texts = []
-
-    #
-    # We can extract all texts from nodes
-    # 
-    text_nodes.each do |node|
-      texts << node.text
-    end
-
-    return texts.compact
+    APNodeGroup.reset
+    text_nodes.map do |node|
+      node.text
+    end.compact
   end
   #/proceed_extraction
 
