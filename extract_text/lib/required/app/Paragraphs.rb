@@ -178,23 +178,31 @@ class << self
     glue_next_to_previous = false
     
     # 
-    # New principle
+    # When next text must be a paragraph start
     # 
     next_is_new_paragraph = true
 
     #
-    #
+    # True if the next text doen't need white space to be glued
+    # to the current text.
     #
     next_line_no_space = false
 
+    # 
+    # Some 'open' character need to be 'closed'
+    # (parenthesis, guillemets, brackets, etc.)
+    # 
+    waiting_character = nil
+
+    # Debug
     deep_debug = false
 
     # 
     # Loop on every line
     # 
     lines.each do |line|
-      puts "--line: #{line.inspect}" #if debug?||verbose?
-      if deep_debug
+      puts "--line: #{line.inspect}" if debug?||verbose?
+      if deep_debug || debug?
         puts "  (glue_next_to_previous = #{glue_next_to_previous.inspect})"
         puts "  REG_START_LINE_NO_NEW_PARAGRAPH : #{line.match?(REG_START_LINE_NO_NEW_PARAGRAPH).inspect}"
         puts "  REG_START_LINE_NO_SPACE         : #{line.match?(REG_START_LINE_NO_SPACE).inspect}"
@@ -238,7 +246,7 @@ class << self
           when REG_OCHEV_WITHOUT_FCHEV then '»'
           when REG_OCRO_WITHOUT_FCRO   then ']'
           end
-        waiting_character = /\\#{waiting_character}/
+        waiting_character = /\\#{Regexp.escape(waiting_character)}/
       else
         waiting_character = nil
       end
@@ -266,8 +274,10 @@ class << self
   # 
   def finalize(text)
 
-    puts "\n\n\n-> finalize".bleu
-    puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
+    if debug?
+      puts "\n\n\n-> finalize".bleu
+      puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
+    end
 
     text = text
       .gsub(/ +\./,'.')
@@ -282,9 +292,10 @@ class << self
         .gsub(/\t/, ' ')
     end
 
-
-    puts "\n\n\nAFTER FINALIZE".bleu
-    puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
+    if debug?
+      puts "\n\n\nAFTER FINALIZE".bleu
+      puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
+    end
 
     return text
   end

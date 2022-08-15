@@ -25,7 +25,7 @@ class << self
   end
 
   def text_per_page?
-    :TRUE == @text_per_page ||= true_or_false(CLI.options.key?(:text_per_page) && CLI.options[:text_per_page] != 'false'))
+    :TRUE == @text_per_page ||= true_or_false(CLI.options.key?(:text_per_page) && CLI.options[:text_per_page] != 'false')
   end
 
   # @return TRUE if we don't want tabulation or double space

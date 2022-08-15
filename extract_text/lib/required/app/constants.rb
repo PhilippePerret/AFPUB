@@ -19,14 +19,16 @@ ERRORS_DATA = {
 MESSAGES_DATA = {
   'en' => {
     page_out_of_range: 'Page #%i is out ranges.',
-    extract_succeeded: "Extraction succeeds!\nThe whole text is in the './%s/%s' file.",
+    extract_succeeded: "👍 Extraction succeeds!\nThe whole text is in the './%s/%s' file.",
+    extract_per_file_succeeded: "👍 Extraction per file succeeds! Each text file has been placed in the './_txt_' folder in the SVGs folder.", 
     folder_contains_svgs: "Folder contains SVG files. OK.",
     all_svgs_are_correct: "All SVG files are correct. OK.",
 
   },
   'fr' => {
     page_out_of_range: 'La page #%i est en dehors du rang à voir.',
-    extract_succeeded: "L'extraction a réussi !\nLe texte complet est dans le fichier './%s/%s'.",
+    extract_succeeded: "👍 L'extraction a réussi !\nLe texte complet est dans le fichier './%s/%s'.",
+    extract_per_file_succeeded: "👍 L'extraction (par page) a réussi ! Tous les fichiers texte ont été placés dans le dossier './_txt_' du dossier contenant les SVGs des pages.", 
     folder_contains_svgs: "Le dossier courant contient des fichiers SVG. OK.",
     all_svgs_are_correct: "Tous les fichiers SVG sont corrects. OK.",
   }

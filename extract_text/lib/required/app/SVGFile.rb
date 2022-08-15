@@ -155,9 +155,26 @@ class SVGFile
   #/get_text_nodes
 
   def page_number
-    @page_number ||= File.basename(path).match(/_([0-9]+)\.svg$/).to_a[1].to_i
+    @page_number ||= filename.match(/_([0-9]+)\.svg$/).to_a[1].to_i
   end
 
-
+  ##
+  # Used when one text file per svg file
+  # 
+  def text_path
+    @text_path ||= File.join(text_folder, "#{affixe}.txt")
+  end
+  def folder
+    @folder ||= File.dirname(path)
+  end
+  def text_folder
+    @text_folder ||= mkdir(File.join(folder,'_txt_'))
+  end
+  def filename
+    @filename ||= File.basename(path)
+  end
+  def affixe
+    @affixe = File.basename(path, File.extname(filename))
+  end
 end #/SVGFile
 end #/module AfPub

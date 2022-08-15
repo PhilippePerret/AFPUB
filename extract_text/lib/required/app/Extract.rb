@@ -39,13 +39,22 @@ class ExtractedFile
 
     verbose? && puts("Options.pages_range: #{Options.pages_range}".bleu)
 
+    # 
+    # Either one big file or one file per page
+    # 
+    flux = nil
 
-    flux = File.open(text_file_path,'a')
+    unless Options.text_per_page?
+      flux = File.open(text_file_path,'a')
+    end
+
     begin
       # 
       # Loop on sorted svg files
       # 
       sorted_svg_files.each do |svg_file|
+        # +svg_file+ {AfPub::SVGFile}
+
         # 
         # In range of files?
         # 
@@ -57,18 +66,37 @@ class ExtractedFile
         # Extract text from svg file
         # 
         text = svg_file.extract_text
-        #
-        # Add text to final file
+
         # 
-        flux.puts(text) unless text.nil? || text.empty?
+        # Maybe no text at all
+        # 
+        next if text.nil? || text.empty?
+
+        # 
+        # Write the text
+        # 
+        if Options.text_per_page?
+          File.open(svg_file.text_path, 'wb') do |f|
+            f.puts(text)
+          end
+        else
+          #
+          # Add text to final file
+          # 
+          flux.puts(text)
+        end
       end
     rescue Exception => e
       puts "#{e.message}\n#{e.backtrace.join("\n")}".rouge
     else
-      puts (MESSAGES[:extract_succeeded] % [folder_name, text_file_name]).vert
+      if Options.text_per_page?
+        puts (MESSAGES[:extract_per_file_succeeded]).vert
+      else
+        puts (MESSAGES[:extract_succeeded] % [folder_name, text_file_name]).vert
+      end
       puts "\n\n"
     ensure
-      flux.close
+      flux.close unless flux.nil?
     end
   end
 
