@@ -18,14 +18,16 @@ class SVGFile
   # @return {String} The whole text or nil if empty
   # 
   def extract_text
-    lines = proceed_extraction
-    if lines.empty?
+    # lines = proceed_extraction # <-- avant
+    proceed_extraction
+    if text_nodes.empty?
       return nil
     else
       #
       # Last treatments of paragraphs
       # 
-      paragraphs = AfPub::Paragraphs.compact(lines)
+      # paragraphs = AfPub::Paragraphs.compact(lines) # <-- avant
+      paragraphs = AfPub::Paragraphs.compact(text_nodes)
       #
       # Compact text
       # 
@@ -39,7 +41,7 @@ class SVGFile
       # 
       if Options.page_number?
         titre_page = "Page ##{page_number}"
-        text = "\n\n#{titre_page}\n#{'-'*titre_page.length}\n\n#{text}"
+        text = "\n\n#{titre_page}\n#{'–'*titre_page.length}\n\n#{text}"
       end
 
       puts "\n\n\n+++ FINAL TEXT #{'<'*60}\n#{text}\n#{'>'*80}" if debug?
@@ -59,9 +61,10 @@ class SVGFile
     debug? && puts("--- Extraction page #{page_number}".bleu)
     APNode.reset
     APNodeGroup.reset
-    text_nodes.map do |node|
-      node.text
-    end.compact
+    get_text_nodes # <-- ajouté
+    # text_nodes.map do |node| # <-- avant
+    #   node.text
+    # end
   end
   #/proceed_extraction
 
@@ -77,7 +80,7 @@ class SVGFile
   #   - only the right ones (exclusion)
   # 
   def text_nodes
-    @text_nodes ||= get_text_nodes
+    @text_nodes # ||= get_text_nodes
   end
   def get_text_nodes
     xdoc = Nokogiri::XML(File.read(path))
@@ -150,7 +153,14 @@ class SVGFile
       end
     end
 
-    return nodes
+    # 
+    # Reinit @index in nodes
+    # 
+    nodes.each_with_index do |node, idx|
+      node.index = idx
+    end
+
+    @text_nodes = nodes
   end
   #/get_text_nodes
 

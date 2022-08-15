@@ -19,6 +19,9 @@ REG_KEYS_LIGATURES = /[#{keys}]/
 # If the beginning of a line match this regexp, it must be glued to
 # the previous paragraph (maybe with a white space, see below).
 REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.]/
+# If the line beginning with this, it is maybe a new paragraph.
+# Note: confirmation with paragraph's y
+REG_START_LINE_MAYBE_NEW_PARAG = /^[A-ZÉÔÈÊ]/
 # If the beginning of a line match this regexp, no white space must
 # be added at the end of the previous paragraph.
 REG_START_LINE_NO_SPACE = /^(er|re|e|\.|\))( |$)/
@@ -173,8 +176,13 @@ class << self
   #     collée.
   #   - SAUF si la suite commence par une capitable
   # 
-  def compact(lines)
+  # def compact(lines) # <-- avant
+  def compact(apnodes)
     paragraphs = [''] # if the first line starts with '[a-z]'
+    
+    #
+    #
+    #
     glue_next_to_previous = false
     
     # 
@@ -200,8 +208,10 @@ class << self
     # 
     # Loop on every line
     # 
-    lines.each do |line|
-      puts "--line: #{line.inspect}" if debug?||verbose?
+    # lines.each do |line| # <-- avant
+    apnodes.each do |apnode|
+      line = apnode.text
+      puts "--line: #{line.inspect} :: #{apnode.point.inspect} :: index:#{apnode.index}" # if debug?||verbose?
       if deep_debug || debug?
         puts "  (glue_next_to_previous = #{glue_next_to_previous.inspect})"
         puts "  REG_START_LINE_NO_NEW_PARAGRAPH : #{line.match?(REG_START_LINE_NO_NEW_PARAGRAPH).inspect}"
@@ -214,7 +224,9 @@ class << self
       if Options.not_paragraph?(line)
         paragraphs[-1] << ' ' + line
       elsif waiting_character && line.match?(waiting_character)
-
+        paragraphs[-1] << ' ' + line
+      elsif line.match?(REG_START_LINE_MAYBE_NEW_PARAG) && apnode.point.y > apnodes[apnode.index - 1].point.y + 100
+        paragraphs << line
       elsif next_is_new_paragraph
         paragraphs << line
       elsif line.match?(/^[A-ZÉÀÔ]/) && not(glue_next_to_previous)
@@ -226,7 +238,7 @@ class << self
         paragraphs[-1] << sep + line
       end
 
-      # Nouveau principe
+      # New principe
       next_is_new_paragraph = line.match?(REG_END_PARAGRAPH)
 
       glue_next_to_previous = 
@@ -237,6 +249,9 @@ class << self
     
       next_line_no_space = line.match?(REG_END_LINE_NO_SPACE)
 
+      #
+      # Open chars waiting for close
+      # 
       if line.match?(REG_CHARS_WITH_WAITING_CHAR)
         waiting_character = 
           case line
