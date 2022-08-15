@@ -21,7 +21,10 @@ REG_KEYS_LIGATURES = /[#{keys}]/
 REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.]/
 # If the beginning of a line match this regexp, no white space must
 # be added at the end of the previous paragraph.
-REG_START_LINE_NO_SPACE = /^(er|re|e|\.)( |$)/
+REG_START_LINE_NO_SPACE = /^(er|re|e|\.|\))( |$)/
+# If the line ends with these character, next line is not to be
+# adding a white space
+REG_END_LINE_NO_SPACE = /[\(]$/ 
 # If the line is one of these, next line must be glued to it  (with 
 # a white space)
 REG_START_LINE_GLUES_NEXT_LINE = /^(Les|Le|La|Une|Un|Des)$/
@@ -31,6 +34,96 @@ REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|du|de|,)$/
 
 REG_LISTING = / ?([–\*•])[ \t]([^–\*•]+[,\.])/
 REG_LISTING_NUM = / ?([0-9]+[\)\.])[ \t]+(.*?[,\.])/
+
+# Certains character (p.e. la parenthèse ouverte), requiert un autre
+# character (p.e. la parenthèse fermante) avant de passer à un autre
+# paragraphe.
+REG_OPAR_WITHOUT_FPAR   = /\([^\)]*$/
+REG_OCHEV_WITHOUT_FCHEV = /«[^»]*$/
+REG_OGUIL_WITHOUT_FGUIL = /^[^"]*"[^"]*$/
+REG_OCRO_WITHOUT_FCRO   = /\[[^\]]*$/
+REG_OACCO_WITHOUT_FACCO = /\{[^\}]*$/
+regs = []
+[
+  ['(',')'],['«','»'],['[',']'],['{','}']
+].each do |paire|
+  o, f = paire
+  regs << "\\#{o}[^\\#{f}]*"
+end
+regs << '^[^"]*"[^"]*' # special for "
+REG_CHARS_WITH_WAITING_CHAR = /(#{regs.join('|')})$/
+# puts "REG_CHARS_WITH_WAITING_CHAR = #{REG_CHARS_WITH_WAITING_CHAR}"
+
+class MonTestParentheseSeule < MiniTest::Test
+  def test_parenthese_seule
+    assert("oui (une parenthèse seule".match?(REG_OPAR_WITHOUT_FPAR))
+    assert("oui (une parenthèse seule".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("à la toute fin (".match?(REG_OPAR_WITHOUT_FPAR))
+    assert("à la toute fin (".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("(".match?(REG_OPAR_WITHOUT_FPAR))
+    assert("(".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("non (une parenthèse fermée) pour voir".match?(REG_OPAR_WITHOUT_FPAR))
+    refute("non (une parenthèse fermée) pour voir".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("(juste la parenthèse)".match?(REG_OPAR_WITHOUT_FPAR))
+    refute("(juste la parenthèse)".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("()".match?(REG_OPAR_WITHOUT_FPAR))
+    refute("()".match?(REG_CHARS_WITH_WAITING_CHAR))
+
+    assert("oui « le caractère seul".match?(REG_OCHEV_WITHOUT_FCHEV))
+    assert("oui « le charactère seul".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("à la toute fin « ".match?(REG_OCHEV_WITHOUT_FCHEV))
+    assert("à la toute fin « ".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("«".match?(REG_OCHEV_WITHOUT_FCHEV))
+    assert("«".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("non « une parenthèse fermée » pour voir".match?(REG_OCHEV_WITHOUT_FCHEV))
+    refute("non « une parenthèse fermée » pour voir".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("« juste le char »".match?(REG_OCHEV_WITHOUT_FCHEV))
+    refute("« juste le char »".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("«»".match?(REG_OCHEV_WITHOUT_FCHEV))
+    refute("«»".match?(REG_CHARS_WITH_WAITING_CHAR))
+
+    assert("oui \"le caractère seul".match?(REG_OGUIL_WITHOUT_FGUIL))
+    assert("oui \"le charactère seul".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("à la toute fin \"".match?(REG_OGUIL_WITHOUT_FGUIL))
+    assert("à la toute fin \"".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("\"".match?(REG_OGUIL_WITHOUT_FGUIL))
+    assert("\"".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("non \"une parenthèse fermée\" pour voir".match?(REG_OGUIL_WITHOUT_FGUIL))
+    refute("non \"une parenthèse fermée\" pour voir".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("\"juste le char\"".match?(REG_OGUIL_WITHOUT_FGUIL))
+    refute("\"juste le char\"".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("\"\"".match?(REG_OGUIL_WITHOUT_FGUIL))
+    refute("\"\"".match?(REG_CHARS_WITH_WAITING_CHAR))
+
+    assert("oui [ le caractère seul".match?(REG_OCRO_WITHOUT_FCRO))
+    assert("oui [ le charactère seul".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("à la toute fin [ ".match?(REG_OCRO_WITHOUT_FCRO))
+    assert("à la toute fin [ ".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("[".match?(REG_OCRO_WITHOUT_FCRO))
+    assert("[".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("non [ une parenthèse fermée ] pour voir".match?(REG_OCRO_WITHOUT_FCRO))
+    refute("non [ une parenthèse fermée ] pour voir".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("[ juste le char ]".match?(REG_OCRO_WITHOUT_FCRO))
+    refute("[ juste le char ]".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("[]".match?(REG_OCRO_WITHOUT_FCRO))
+    refute("[]".match?(REG_CHARS_WITH_WAITING_CHAR))
+
+    assert("oui { le caractère seul".match?(REG_OACCO_WITHOUT_FACCO))
+    assert("oui { le charactère seul".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("à la toute fin { ".match?(REG_OACCO_WITHOUT_FACCO))
+    assert("à la toute fin { ".match?(REG_CHARS_WITH_WAITING_CHAR))
+    assert("{".match?(REG_OACCO_WITHOUT_FACCO))
+    assert("{".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("non { une parenthèse fermée } pour voir".match?(REG_OACCO_WITHOUT_FACCO))
+    refute("non { une parenthèse fermée } pour voir".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("{ juste le char }".match?(REG_OACCO_WITHOUT_FACCO))
+    refute("{ juste le char }".match?(REG_CHARS_WITH_WAITING_CHAR))
+    refute("{}".match?(REG_OACCO_WITHOUT_FACCO))
+    refute("{}".match?(REG_CHARS_WITH_WAITING_CHAR))
+  end
+end
+# Minitest.run
+# exit 0
 
 REG_GUIL_OPEN_NOT_END_PARAGRAPH = /(«[^»]*|\([^\)]*)$/
 class MonTest < MiniTest::Test
@@ -47,6 +140,7 @@ class MonTest < MiniTest::Test
     end
   end
 end
+
 test? && MiniTest.run
 
 
@@ -88,6 +182,11 @@ class << self
     # 
     next_is_new_paragraph = true
 
+    #
+    #
+    #
+    next_line_no_space = false
+
     deep_debug = false
 
     # 
@@ -106,13 +205,16 @@ class << self
 
       if Options.not_paragraph?(line)
         paragraphs[-1] << ' ' + line
+      elsif waiting_character && line.match?(waiting_character)
+
       elsif next_is_new_paragraph
         paragraphs << line
       elsif line.match?(/^[A-ZÉÀÔ]/) && not(glue_next_to_previous)
         paragraphs << line
       else
         # Which separator ?
-        sep = line.match?(REG_START_LINE_NO_SPACE) ? '' : ' '
+        no_space = next_line_no_space || line.match?(REG_START_LINE_NO_SPACE)
+        sep = no_space ? '' : ' '
         paragraphs[-1] << sep + line
       end
 
@@ -124,6 +226,23 @@ class << self
         line.match?(REG_END_LINE_GLUES_NEXT_LINE) ||
         line.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH)
       verbose? && glue_next_to_previous && "  -> Le prochain texte doit coller."
+    
+      next_line_no_space = line.match?(REG_END_LINE_NO_SPACE)
+
+      if line.match?(REG_CHARS_WITH_WAITING_CHAR)
+        waiting_character = 
+          case line
+          when REG_OACCO_WITHOUT_FACCO then '}'
+          when REG_OPAR_WITHOUT_FPAR   then ')'
+          when REG_OGUIL_WITHOUT_FGUIL then '"'
+          when REG_OCHEV_WITHOUT_FCHEV then '»'
+          when REG_OCRO_WITHOUT_FCRO   then ']'
+          end
+        waiting_character = /\\#{waiting_character}/
+      else
+        waiting_character = nil
+      end
+
     end
 
     #

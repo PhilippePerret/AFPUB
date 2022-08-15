@@ -40,6 +40,7 @@ $> afput-extract-text[ options]
                   before each page treated.
                   Example:
                     --page_number=false
+                    --page_number  # => true
                   
 
 --paragraph_separator=<type>    
@@ -68,6 +69,16 @@ $> afput-extract-text[ options]
 									Default: true
 									Example:
 											--single_space=false
+                      --single_space  # => true
+
+--text_per_page=true|false
+                  
+                  If true, ouput one text file per page rather a
+                  uniq file with the whole text.
+                  Default: false
+                  Example:
+                      --text_per_page=true
+                      --text_per_page   # => true
 ```
 ---
 

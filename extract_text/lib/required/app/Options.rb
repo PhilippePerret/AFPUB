@@ -24,6 +24,10 @@ class << self
     :TRUE == @page_number ||= true_or_false(not(CLI.options[:page_number] == 'false'))
   end
 
+  def text_per_page?
+    :TRUE == @text_per_page ||= true_or_false(CLI.options.key?(:text_per_page) && CLI.options[:text_per_page] != 'false'))
+  end
+
   # @return TRUE if we don't want tabulation or double space
   def only_single_spaces?
     :TRUE == @only_single_spaces ||= true_or_false(not(CLI.options[:single_space] == 'false'))
