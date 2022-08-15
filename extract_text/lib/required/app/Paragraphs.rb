@@ -29,8 +29,8 @@ REG_START_LINE_GLUES_NEXT_LINE = /^(Les|Le|La|Une|Un|Des)$/
 # it (with a white space)
 REG_END_LINE_GLUES_NEXT_LINE = /(les|la|le|du|de|,)$/
 
-REG_LISTING = / ?([–\-\*•])[ \t]([^–\-\*•]+[,\.])/
-REG_LISTING_NUM = / ?([0-9]+[\)\.]?)[ \t]+(.*?[,\.])/
+REG_LISTING = / ?([–\*•])[ \t]([^–\*•]+[,\.])/
+REG_LISTING_NUM = / ?([0-9]+[\)\.])[ \t]+(.*?[,\.])/
 
 REG_GUIL_OPEN_NOT_END_PARAGRAPH = /(«[^»]*|\([^\)]*)$/
 class MonTest < MiniTest::Test
@@ -48,6 +48,9 @@ class MonTest < MiniTest::Test
   end
 end
 test? && MiniTest.run
+
+
+REG_END_PARAGRAPH = /[\.\!\?]$/ # no space after!!!
 
 class << self
 
@@ -79,8 +82,13 @@ class << self
   def compact(lines)
     paragraphs = [''] # if the first line starts with '[a-z]'
     glue_next_to_previous = false
+    
+    # 
+    # New principle
+    # 
+    next_is_new_paragraph = true
 
-    deep_debug = true
+    deep_debug = false
 
     # 
     # Loop on every line
@@ -96,30 +104,35 @@ class << self
         puts "  REG_GUIL_OPEN_NOT_END_PARAGRAPH : #{line.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH).inspect}"
       end
 
-      if glue_next_to_previous
+      if Options.not_paragraph?(line)
         paragraphs[-1] << ' ' + line
-      elsif Options.not_paragraph?(line)
-        paragraphs[-1] << ' ' + line
-      elsif line.match?(REG_START_LINE_NO_NEW_PARAGRAPH)
+      elsif next_is_new_paragraph
+        paragraphs << line
+      elsif line.match?(/^[A-ZÉÀÔ]/) && not(glue_next_to_previous)
+        paragraphs << line
+      else
         # Which separator ?
         sep = line.match?(REG_START_LINE_NO_SPACE) ? '' : ' '
         paragraphs[-1] << sep + line
-      else
-        # A very new paragraph
-        paragraphs << line
       end
+
+      # Nouveau principe
+      next_is_new_paragraph = line.match?(REG_END_PARAGRAPH)
+
       glue_next_to_previous = 
         line.match?(REG_START_LINE_GLUES_NEXT_LINE) || 
         line.match?(REG_END_LINE_GLUES_NEXT_LINE) ||
         line.match?(REG_GUIL_OPEN_NOT_END_PARAGRAPH)
       verbose? && glue_next_to_previous && "  -> Le prochain texte doit coller."
     end
+
     #
     # Pull the first added paragraph if it is empty
     # 
-    if paragraphs.first == ''
-      paragraphs.shift
-    end
+    paragraphs.shift if paragraphs.first == ''
+
+    # puts "\n\n\nPARAGRAPHES:\n#{paragraphs.join("\n")}"
+      
     #
     # @return all paragraphs
     # 
@@ -133,17 +146,26 @@ class << self
   # @return a well writen text.
   # 
   def finalize(text)
+
+    puts "\n\n\n-> finalize".bleu
+    puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
+
     text = text
       .gsub(/ +\./,'.')
       .gsub(REG_KEYS_LIGATURES, TABLE_LIGATURES)
       .gsub(REG_LISTING, "\n\\1 \\2")
       .gsub(REG_LISTING_NUM, "\n\\1 \\2")
+      .gsub(/ +,/,',') # no spaces before comma
     
     if Options.only_single_spaces?
       text = text
         .gsub(/  +/,' ')
         .gsub(/\t/, ' ')
     end
+
+
+    puts "\n\n\nAFTER FINALIZE".bleu
+    puts "text : #{'<'*40}\n#{text}\n#{'>'*40}"
 
     return text
   end
