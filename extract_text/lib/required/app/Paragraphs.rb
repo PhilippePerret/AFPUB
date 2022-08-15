@@ -34,20 +34,6 @@ REG_LISTING_NUM = / ?([0-9]+[\)\.]?)[ \t]+(.*?[,\.])/
 
 class << self
 
-  def not_paragraphs
-    @not_paragraphs ||= Options.not_paragraphs
-  end
-
-  def not_paragraph?(line)
-    not_paragraphs.each do |regexp|
-      if line.match?(regexp)
-        verbose? && puts("+ Line #{line.inspect} n'est pas un paragraphe".bleu)
-        return true 
-      end
-    end
-    return false
-  end
-
   ##
   # Receive a list of {String} texts, with paragraphs cutted as in
   # a XML node, and @return a list of {String} right paragraphs.
@@ -70,10 +56,10 @@ class << self
     # Loop on every line
     # 
     lines.each do |line|
-      puts "--line: #{line.inspect}" if debug?
+      puts "--line: #{line.inspect}" if debug?||verbose?
       if glue_next_to_previous
         paragraphs[-1] << ' ' + line
-      elsif not_paragraphs && not_paragraph?(line)
+      elsif Options.not_paragraph?(line)
         paragraphs[-1] << ' ' + line
       elsif line.match(REG_START_LINE_NO_NEW_PARAGRAPH)
         # Which separator ?

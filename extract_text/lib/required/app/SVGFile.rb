@@ -73,8 +73,9 @@ class SVGFile
 
   ##
   # @return text nodes sorted such as a text before is a node before
-  # Otherwise, in SVG code (remember: it's a image), some text node 
-  # can be at the wrong place in the code flow
+  # Otherwise, in SVG code (remember: it's a image), some text nodes 
+  # can be at the wrong place in the SVGcode flow
+  # Overall, text tag can be inside a g tag with transformation.
   #
   def sorted_text_nodes
     @sorted_text_nodes ||= begin
@@ -119,9 +120,24 @@ class SVGFile
   end
 
   ##
+  # Return text nodes 
+  # ------------------
+  # Some of them are in a <g> tag with matrix transformation so we
+  # must calculate the real positions (x, y).
+  # 
   # @return text nodes (only the right ones) as {APNode} instances
   # 
+  # 
   def text_nodes
+    @text_nodes ||= begin
+      xdoc = Nokogiri::XML(File.read(path))
+      xdox.css('text,g').each do |node|
+        puts "\n+++ node: #{node.inspect}"
+      end
+      exit 0 # POUR VOIR JUSTE ÇA
+    end
+  end
+  def text_nodes_OLD
     @text_nodes ||= begin
       xdoc = Nokogiri::XML(File.read(path))
       # 
@@ -132,7 +148,7 @@ class SVGFile
         # 
         # Excludes some nodes 
         # 
-        node.text.match(/^[0-9]+$/)
+        Options.exclusions && Options.excluded_node?(node)
       end.map.with_index do |node, idx|
         # 
         # {AFNode} instance

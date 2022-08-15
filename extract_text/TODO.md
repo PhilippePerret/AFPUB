@@ -1,5 +1,9 @@
 # Todo list
 
+## NOW
+
+* Calculer la vraie position des paragraphes en tenant compte du "g" dans lequel ils se trouvent et la déformation par matrice qui peut les affecter.
+
 ## BUGS
 
 * [Page 3 du Beethoven] 

@@ -69,9 +69,26 @@ $> afput-extract-text[ options]
 
 You can define some usefull definitions in some files to refine the extraction processus.
 
+### Excluded nodes
+
+We can define excludes nodes in the **`exclude_nodes.txt`** file (in the main SVG folder) with litteral or regular expressions.
+
+~~~
+# in ./exclude_nodes.txt
+
+# --- Litteral ---
+@copyrigth
+
+# --- Regular ---
+# All texts with *only* numbers
+/^[0-9]+$/
+~~~
+
+
+
 ### Treatment as span (not paragraph)
 
-We can define in the `not_paragraphs.txt` file some texts that should not be treated as paragraph even they look like paragraph. See below.
+We can define in the **`not_paragraphs.txt`** file some texts that should not be treated as paragraph even they look like paragraph. See below.
 
 ~~~
 # in ./not_paragraphs.txt

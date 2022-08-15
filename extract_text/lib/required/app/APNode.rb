@@ -143,26 +143,4 @@ class APNode
 
 
 end #/class APNode
-
-class Point
-  attr_reader :x, :y
-  def initialize x, y
-    @x = x
-    @y = y
-  end
-  def inspect
-    "x:#{x} y:#{y}"
-  end
-  def deform(matrix)
-    a, b, c, d, e, f = matrix
-    oldx = x.freeze
-    oldy = y.freeze
-    @x = a * oldx + c * oldy + e  
-    @y = b * oldx + d * oldy + f
-
-    return self
-  end
-end
-
-
 end #/module AfPub
