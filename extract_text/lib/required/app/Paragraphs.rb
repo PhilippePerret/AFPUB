@@ -285,6 +285,7 @@ class << self
       .gsub(REG_LISTING, "\n\\1 \\2")
       .gsub(REG_LISTING_NUM, "\n\\1 \\2")
       .gsub(/ +,/,',') # no spaces before comma
+      .gsub(/­(- )?/,'') # cesures
     
     if Options.only_single_spaces?
       text = text
