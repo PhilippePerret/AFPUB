@@ -219,7 +219,7 @@ class << self
     # 
     apnodes.each do |apnode|
       line = apnode.text
-      puts "--line: #{line.inspect} :: #{apnode.point.inspect} :: index:#{apnode.index}" # if debug?||verbose?
+      puts "--line: #{line.inspect} :: #{apnode.point.inspect} :: index:#{apnode.index}" if debug?||verbose?
       if deep_debug || debug?
         puts "  (glue_next_to_previous = #{glue_next_to_previous.inspect})"
         puts "  REG_START_LINE_MAYBE_NEW_PARAG  : #{line.match?(REG_START_LINE_MAYBE_NEW_PARAG).inspect}"

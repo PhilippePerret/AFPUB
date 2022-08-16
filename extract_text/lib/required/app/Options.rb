@@ -70,7 +70,7 @@ class << self
 
   def column_width
     @column_width ||= begin
-      CLI.options[:column_width] || 1000
+      CLI.options[:column_width] || COLUMN_WIDTH
     end
   end
 
@@ -116,29 +116,47 @@ class << self
   end
 
   ##
+  # Load configuration file to define some constants
+  # 
   # Called at the beginning of the work, try to find a file config.txt
   # which defines properties and mesurement of the document.
   # If doesn't exist, take default values
   # 
-  def define_document_constants
-
-    Object.const_set('MINIMUM_LINEHEIGHT', table[:minimum_lineheight])
+  def load_document_configuration
+    Object.const_set('DEFAULT_LANG',        config[:lang])
+    Point.const_set('Y_TOLERANCE',          config[:y_tolerance].to_i)
+    Object.const_set('COLUMN_WIDTH',        config[:column_width].to_i)
+    Object.const_set('MINIMUM_LINEHEIGHT',  config[:minimum_lineheight].to_i)
   end
 
-  def get_config
-    config = {
-        minimum_lineheight: 100,
-        column_width:       1000
-      }
-
-    if File.exist?(config_txt_filepath)
-    elsif File.exist?(config_yaml_filepath)
-      YAML.load_file(config_yaml_filepath)
-    else
-    end
+  def config
+    @config ||= get_config
   end
 
 private
+
+  ##
+  # @return configuration table (with default value added)
+  def get_config
+    config = {
+      minimum_lineheight: 100,
+      y_tolerance:        70,
+      column_width:       1000,
+      lang:               'en',
+    }
+    table = {}
+    if File.exist?(config_txt_filepath)
+      File.readlines(config_txt_filepath).each do |line|
+        line = line.strip
+        next if line == '' || line.start_with?('#')
+        prop, value = line.strip.split('=').map{|n|n.strip}
+        table.merge!(prop.to_sym)
+      end
+    elsif File.exist?(config_yaml_filepath)
+      table = YAML.load_file(config_yaml_filepath)
+    end
+    config.merge!(table)
+  end
 
   ##
   # Read +filename+ (a file name in main SVG folder) and returns

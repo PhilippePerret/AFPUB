@@ -1,6 +1,6 @@
 # encoding: UTF-8
 
-DEFAULT_LANG = 'en'
+# DEFAULT_LANG = 'en' # <= config
 
 
 ERRORS_DATA = {

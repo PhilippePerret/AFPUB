@@ -2,8 +2,6 @@
 module AfPub
 class Point
   
-  Y_TOLERANCE = 70
-
   attr_reader :x, :y
   def initialize x, y
     @x = x
@@ -19,7 +17,7 @@ class Point
   #   - more to the bottom > 70
   #   - more to the right if at same top
   def after?(point)
-    if point.y + Y_TOLERANCE < self.y
+    if point.y + Y_TOLERANCE < self.y # Y_TOLERANCE <= config
       # 
       # +point+ est plus haut
       # 

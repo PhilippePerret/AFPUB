@@ -28,8 +28,14 @@ class ExtractedFile
   # Proceed to extraction
   # 
   def proceed
+    init
     folder_conform? || return
     export_all_svgs
+  end
+
+  def init
+    Options.load_document_configuration
+    Options.define_errors_and_messages
   end
 
   def export_all_svgs
@@ -150,7 +156,8 @@ class ExtractedFile
     puts MESSAGES[:all_svgs_are_correct].vert
 
   rescue Exception => e
-    puts "\n\n#{e.message}\n#{ERRORS[:cant_op]}\n\n".rouge
+    puts "\n\n#{e.message}".rouge
+    puts "#{ERRORS[:cant_op]}\n\n".rouge
     return false
   else
     return true

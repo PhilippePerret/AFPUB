@@ -88,6 +88,41 @@ $> afput-extract-text[ options]
 
 You can define some usefull definitions in some files to refine the extraction processus.
 
+### Configuration file
+
+We can define some document definitions (measurements) to facilitate extraction.
+
+Configuration can be text file (config.txt) or [YAML](https://yaml.org) file. The file must be placed in the SVGs folder.
+
+#### config.yaml
+
+~~~yaml
+---
+# App language (fr, en)
+lang:                en
+# If some pages contains 2 columns 
+column_width:        1000 # px
+# Line-height between two paragraphs
+minimum_lineheight:  100  # px
+# Maximum amount of pixels to consider that a
+# text is on the same line of another.
+y_tolerance:         70
+~~~
+#### config.txt
+
+~~~text
+# App language (fr, en)
+lang:              = en
+# If some pages contains 2 columns 
+column_width       = 1000
+# Line-height between two paragraphs
+minimum_lineheight = 100
+# Maximum amount of pixels to consider that a
+# text is on the same line of another.
+y_tolerance        = 70
+
+~~~
+
 ### Excluded nodes
 
 We can define excludes nodes in the **`exclude_nodes.txt`** file (in the main SVG folder) with litteral or regular expressions.
