@@ -151,8 +151,9 @@ NiemeException
 ### Prerequises
 
 * [Ruby](https://www.ruby-lang.org) > 2.6 up and running
-* [Nokogiri gem](http://nokogiri.org) (`gem install nokogiri`)
+* [Gem Nokogiri](http://nokogiri.org) (`gem install nokogiri`)
 * Gem minitest-color (`gem install minitest-color`)
+* Gem YAML (`gem install yaml`)
 * `afpub-extract-text` alias :
 
   ```

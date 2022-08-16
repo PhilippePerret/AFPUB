@@ -1,5 +1,6 @@
 # encoding: UTF-8
 require 'nokogiri'
+require 'yaml'
 require 'minitest'
 require 'minitest/color'
 

@@ -21,7 +21,7 @@ REG_KEYS_LIGATURES = /[#{keys}]/
 REG_START_LINE_NO_NEW_PARAGRAPH = /^[a-zàçéêè\(\)\:\,\+«»\.]/
 # If the line beginning with this, it is maybe a new paragraph.
 # Note: confirmation with paragraph's y
-REG_START_LINE_MAYBE_NEW_PARAG = /^[A-ZÉÔÈÊ]/
+REG_START_LINE_MAYBE_NEW_PARAG = /^([A-ZÉÔÈÊ]|[0-9]+\. )/
 # If the beginning of a line match this regexp, no white space must
 # be added at the end of the previous paragraph.
 REG_START_LINE_NO_SPACE = /^(er|re|e|\.|\))( |$)/
@@ -151,6 +151,11 @@ REG_END_PARAGRAPH = /[\.\!\?]$/ # no space after!!!
 
 class << self
 
+  #
+  # Array of all {APNode}s traited
+  # 
+  attr_reader :apnodes
+
   ##
   # Receive a list of {String} texts, with paragraphs cutted as in
   # a XML node, and @return a list of {String} right paragraphs.
@@ -176,10 +181,14 @@ class << self
   #     collée.
   #   - SAUF si la suite commence par une capitable
   # 
-  # def compact(lines) # <-- avant
   def compact(apnodes)
     paragraphs = [''] # if the first line starts with '[a-z]'
     
+    #
+    # Globalize
+    # 
+    @apnodes = apnodes
+
     #
     #
     #
@@ -206,14 +215,14 @@ class << self
     deep_debug = false
 
     # 
-    # Loop on every line
+    # Loop on every line (APNode, in fact)
     # 
-    # lines.each do |line| # <-- avant
     apnodes.each do |apnode|
       line = apnode.text
       puts "--line: #{line.inspect} :: #{apnode.point.inspect} :: index:#{apnode.index}" # if debug?||verbose?
       if deep_debug || debug?
         puts "  (glue_next_to_previous = #{glue_next_to_previous.inspect})"
+        puts "  REG_START_LINE_MAYBE_NEW_PARAG  : #{line.match?(REG_START_LINE_MAYBE_NEW_PARAG).inspect}"
         puts "  REG_START_LINE_NO_NEW_PARAGRAPH : #{line.match?(REG_START_LINE_NO_NEW_PARAGRAPH).inspect}"
         puts "  REG_START_LINE_NO_SPACE         : #{line.match?(REG_START_LINE_NO_SPACE).inspect}"
         puts "  REG_START_LINE_GLUES_NEXT_LINE  : #{line.match?(REG_START_LINE_GLUES_NEXT_LINE).inspect}"
@@ -225,7 +234,7 @@ class << self
         paragraphs[-1] << ' ' + line
       elsif waiting_character && line.match?(waiting_character)
         paragraphs[-1] << ' ' + line
-      elsif line.match?(REG_START_LINE_MAYBE_NEW_PARAG) && apnode.point.y > apnodes[apnode.index - 1].point.y + 100
+      elsif is_paragraph_after_previous?(apnode)
         paragraphs << line
       elsif next_is_new_paragraph
         paragraphs << line
@@ -282,7 +291,6 @@ class << self
   end
   #/compact
 
-
   ##
   # Receive a {String} text with formating or typographic errors and 
   # @return a well writen text.
@@ -315,7 +323,18 @@ class << self
 
     return text
   end
+  # /finalize
 
+
+  ##
+  # @return TRUE if +apnode+ is a real new paragraph (it starts as a 
+  # paragraph and is lower than the previous text)
+  # 
+  def is_paragraph_after_previous?(apnode)
+    return false unless apnode.text.match?(REG_START_LINE_MAYBE_NEW_PARAG) 
+    return false if apnode.index == 0
+    return apnode.point.y > apnodes[apnode.index - 1].point.y + MINIMUM_LINEHEIGHT
+  end
 
 end #/<< self
 end #/class Paragraphs

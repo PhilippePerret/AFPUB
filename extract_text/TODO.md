@@ -1,5 +1,11 @@
 # Todo list
 
+## 
+
+* Un fichier définissant les spécificités de la page
+  - largeur de colonne (si colonne)
+  - espace entre texte
+  
 ## Textes à traiter
 
 * page #18 : "Étapes de l’analyse 1. Généralités et contexte"

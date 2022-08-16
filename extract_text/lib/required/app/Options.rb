@@ -115,6 +115,28 @@ class << self
     Object.const_set('MESSAGES',  MESSAGES_DATA[lang])
   end
 
+  ##
+  # Called at the beginning of the work, try to find a file config.txt
+  # which defines properties and mesurement of the document.
+  # If doesn't exist, take default values
+  # 
+  def define_document_constants
+
+    Object.const_set('MINIMUM_LINEHEIGHT', table[:minimum_lineheight])
+  end
+
+  def get_config
+    config = {
+        minimum_lineheight: 100,
+        column_width:       1000
+      }
+
+    if File.exist?(config_txt_filepath)
+    elsif File.exist?(config_yaml_filepath)
+      YAML.load_file(config_yaml_filepath)
+    else
+    end
+  end
 
 private
 
@@ -123,7 +145,7 @@ private
   # all expression as regular expression to filter the text nodes.
   # 
   def read_definitions_in(filename)
-    path = File.join(ExtractedFile.current_folder.folder_path,filename)
+    path = File.join(current_folder,filename)
     if File.exist?(path)
       File.readlines(path).map do |line|
         line = line.strip
@@ -138,6 +160,16 @@ private
     end
   end
 
+  def config_txt_filepath
+    @config_filepath ||= File.join(current_folder, 'config.txt')
+  end
+  def config_yaml_filepath
+    @config_filepath ||= File.join(current_folder, 'config.yaml')
+  end
+
+  def current_folder
+    @current_folder ||= ExtractedFile.current_folder.folder_path
+  end
 end #/<< class
 end #/class Options
 end #/module AfPub
