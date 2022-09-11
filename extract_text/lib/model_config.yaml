@@ -37,6 +37,27 @@
 # Si true, on fait un fichier texte par page
 # 
 :text_per_page: false
+# 
+# Segments de texte à exclure
+# Chaque élément peut être un texte explicite ou une expression 
+# régulière.
+# Par exemple :
+#     :excludes:
+#       - "REM"       # segments ne contenant que 'REM'
+#       - /^REM /     # segments commençant par 'REM '
+#       - /[0-9]+$/   # segments terminant par un nombre
+:excludes: []
+# 
+# Liste des segments de texte qu'il ne faut pas considérer comme
+# comme des paragraphes, même s'ils commencent par exemple par
+# des capitales. Par exemple, un nom propre qui pourrait être
+# confondu avec un début de nouveau paragraphe.
+# Chaque élément doit être une expression textuelle ou régulière,
+# par exemple :
+#   :not_paragraphs:
+#     - 'Em'
+#     - /^[A_G][\+\-]/ # commence par…
+:not_paragraphs: []
 
 # Ne servent plus :
 :minimum_lineheight: 100

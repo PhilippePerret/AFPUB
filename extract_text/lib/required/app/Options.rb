@@ -49,19 +49,6 @@ class << self
     :TRUE == @only_single_spaces ||= true_or_false(not(CLI.options[:single_space] == 'false'))
   end
 
-  # @return TRUE if text +node+ must be excluded.
-  # @param node {APNode} The text node
-  def exclude_node?(node)
-    return false if exclude_nodes.nil?
-    exclude_nodes.each do |regexp|
-      if node.text.match?(regexp)
-        verbose? && puts("+ Le Node #{node.text.inspect} must be excluded".bleu)
-        return true
-      end
-    end
-    return false
-  end
-
   ##
   # Si des éléments sont définis comme n'étant pas des lignes, 
   # @return TRUE si +line+ est considéré comme un paragraphe
@@ -77,15 +64,31 @@ class << self
     return false
   end
 
+  def exclure?(text)
+    exclusions.each do |exclus|
+      return true if text.match?(exclus)
+    end
+    return false
+  end
+
   # --- /public methods ---
 
 
-  def exclude_nodes 
-    @exclude_nodes ||= read_definitions_in('exclude_nodes')
+  def exclusions 
+    @exclusions ||= begin
+      ex = config[:excludes]||[]
+      ex.map do |exclus|
+        if exclus.is_a?(String)
+          /^#{exclus}$/
+        else
+          exclus
+        end
+      end
+    end
   end
 
   def not_paragraphs
-    @not_paragraphs ||= read_definitions_in('not_paragraphs.txt')
+    @not_paragraphs ||= config[:not_paragraphs]
   end
 
   def column_width
@@ -170,44 +173,15 @@ private
       y_tolerance:        30,
       column_width:       1000,
       lang:               'en',
+      not_paragraphs:     [],
+      excludes:           []
     }
     table = {}
-    if File.exist?(config_txt_filepath)
-      File.readlines(config_txt_filepath).each do |line|
-        line = line.strip
-        next if line == '' || line.start_with?('#')
-        prop, value = line.strip.split('=').map{|n|n.strip}
-        table.merge!(prop.to_sym)
-      end
-    elsif File.exist?(config_yaml_filepath)
+    if File.exist?(config_yaml_filepath)
       table = YAML.load_file(config_yaml_filepath)
     end
     config.merge!(table)
     config.merge!(y_demi_tolerance: config[:y_tolerance] / 2)
-  end
-
-  ##
-  # Read +filename+ (a file name in main SVG folder) and returns
-  # all expression as regular expression to filter the text nodes.
-  # 
-  def read_definitions_in(filename)
-    path = File.join(current_folder,filename)
-    if File.exist?(path)
-      File.readlines(path).map do |line|
-        line = line.strip
-        next if line.start_with?('#') || line == ''
-        verbose? && puts("line not paragraph: #{line}")
-        if line.start_with?('/')
-          eval(line)
-        else
-          /^#{line}$/
-        end
-      end.compact
-    end
-  end
-
-  def config_txt_filepath
-    @config_filepath ||= File.join(current_folder, 'config.txt')
   end
 
   def current_folder

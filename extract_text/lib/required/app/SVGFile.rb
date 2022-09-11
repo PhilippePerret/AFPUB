@@ -224,10 +224,12 @@ class SVGFile
 
     # 
     # On récupère tous les textes
+    # En en profitant pour exclure les textes à exclure
     # 
     textes = []
     groupes.each do |groupe|
       groupe[:texts].each do |dtexte|
+        next if Options.exclure?(dtexte[:text])
         textes << dtexte
       end
     end
