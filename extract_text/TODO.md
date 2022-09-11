@@ -1,5 +1,6 @@
 # Todo list
 
+* Si un paragraphe correspond au numéro de la page => supprimer
 * Ajouter les pages pour voir le résultat, affiner en conséquence
 * Pouvoir décider de répétitions à supprimer (par exemple les "..." de la table des matières)
   - pouvoir préciser à partir de combien on supprime (pour éviter de supprimer des répétitions normales)

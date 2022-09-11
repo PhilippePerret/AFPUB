@@ -144,29 +144,30 @@ class ExtractedFile
           #
           # Le texte avant
           # 
-          prevtexte = all_dtextes[i - 1][:text]
-          paragsprev  = prevtexte.split(GROUP_PARAG_DELIMITOR)
-          lastparag   = paragsprev.last
+          prevtexte  = all_dtextes[i - 1][:text]
+          prevparags = prevtexte.split("\n")
+          prev_parag = prevparags.last
           # 
           # Le texte après
           # 
           nexttexte   = all_dtextes[i][:text]
-          paragsnext  = nexttexte.split(GROUP_PARAG_DELIMITOR)
-          fistparag   = paragsnext.first
+          nextparags  = nexttexte.split("\n")
+          next_parag  = nextparags.first
           # 
           # On tente de les fusionner
           # 
-          fusion = TextAffinator.compact(lastparag + "\n" + lastparag)
+          fusion = TextAffinator.compact(prev_parag + "\n" + next_parag)
           # 
           # Si la fusion ne contient plus qu'un seul paragraphe,
           # les deux textes sont liés
           # Sinon, on ne touche à rien
           # 
-          if fusion.split("\n\n").count > 1
-            paragsprev[0] = fusion
-            all_dtextes[i - 1][:text] = paragsprev.join(GROUP_PARAG_DELIMITOR)
-            paragsnext.shift
-            all_dtextes[i][:text] = paragsnext.join(GROUP_PARAG_DELIMITOR)
+          if fusion.split("\n").count < 2
+            # puts "FUSION NÉCESSAIRE : #{fusion}"
+            prevparags[-1] = fusion
+            all_dtextes[i - 1][:text] = prevparags.join("\n")
+            nextparags.shift
+            all_dtextes[i][:text] = nextparags.join("\n")
           end
         end
 

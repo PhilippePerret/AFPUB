@@ -73,10 +73,7 @@ class << self
   # Le texte "compacté"
   # 
   def affine(texte)
-    # paragraphes = texte.split("\n\n").map{|p|compact(p)}
-    # puts "\n\n\nparagraphes:\n#{paragraphes}"
-    # paragraphes.join(GROUP_PARAG_DELIMITOR).strip
-    finalize texte.split("\n\n").map{|p|compact(p)}.join(GROUP_PARAG_DELIMITOR)
+    finalize texte.split("\n\n").map { |p|compact(p) }.join(GROUP_PARAG_DELIMITOR)
   end
 
 
@@ -208,11 +205,14 @@ class << self
       # 
       is_new_paragraph = line.match?(REG_END_PARAGRAPH)
 
+      # Usefull below
+      maybe_title = line.split(" ").count < 4
+      
       # 
       # Reasons of current line which confirm that next paragraph
       # must be
       glue_to_previous = 
-        line.match?(TRAILING_IS_LOWERCASE)  ||
+        (line.match?(TRAILING_IS_LOWERCASE) && not(maybe_title)) ||
         line.match?(ONLY_DETERMINANT)       || 
         line.match?(END_WITH_DETERMINANT)   ||
         line.match?(OPENED_PAIR_NOT_CLOSED)
