@@ -1,6 +1,5 @@
 # Todo list
 
-* Options : la possibilité de préciser que des pages sont à colonne unique
 * Ajouter les pages pour voir le résultat, affiner en conséquence
 * Pouvoir décider de répétitions à supprimer (par exemple les "..." de la table des matières)
   - pouvoir préciser à partir de combien on supprime (pour éviter de supprimer des répétitions normales)

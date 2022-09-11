@@ -164,6 +164,7 @@ class << self
     Object.const_set('Y_TOLERANCE',         config[:y_tolerance].to_i)
     Object.const_set('COLUMN_WIDTH',        config[:column_width].to_i)
     Object.const_set('MINIMUM_LINEHEIGHT',  config[:minimum_lineheight].to_i)
+    Object.const_set('GROUP_PARAG_DELIMITOR', paragraph_carriage)
   end
 
   def config
@@ -190,7 +191,8 @@ private
       max_word_per_title: 3,
       not_paragraphs:     [],
       excludes:           [],
-      pages_with_one_column: []
+      pages_with_one_column: [],
+      paragraph_carriage_separator: 1
     }
     table = {}
     if File.exist?(config_yaml_filepath)
@@ -198,6 +200,11 @@ private
     end
     config.merge!(table)
     config.merge!(y_demi_tolerance: config[:y_tolerance] / 2)
+  end
+
+  # Sera mis dans une constante
+  def paragraph_carriage
+    "\n" * (config[:paragraph_carriage_separator]||2)
   end
 
   def current_folder

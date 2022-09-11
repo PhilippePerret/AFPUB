@@ -45,6 +45,13 @@
 # Si true, on fait un fichier texte par page
 # 
 :text_per_page: false
+# 
+# Séparateur de paragraphe
+# ------------------------
+# Indiquer ici le NOMBRE DE RETOURS CHARIOT qui doit séparer les
+# paragraphes identifiés.
+# 
+:paragraph_carriage_separator: 1
 #
 # Nombre de mots maximum par titre
 # --------------------------------

@@ -1,8 +1,6 @@
 # encoding: UTF-8
 module AfPub
 
-GROUP_PARAG_DELIMITOR = "\n\n"
-
 class TextAffinator
 
 TABLE_LIGATURES = {
@@ -15,10 +13,9 @@ keys = TABLE_LIGATURES.keys.join('')
 REG_KEYS_LIGATURES = /[#{keys}]/
 
 
-# --- REG EXPRESSIONS IN TREATMENT ORDER ---
+# --- REG EXPRESSIONS ---
 
-# 'e ' must be treatened before 'e<something>' (no space)
-
+REG_ONLY_NUMBER = /^[0-9]+$/
 
 # If the beginning of a line match this regexp, it must be glued to
 # the previous paragraph (maybe with a white space, see below).
@@ -250,7 +247,7 @@ class << self
     #
     # @return all paragraphs as string
     # 
-    return paragraphs.join("\n")
+    return paragraphs.join(GROUP_PARAG_DELIMITOR)
   end
   #/compact
 
@@ -258,7 +255,7 @@ class << self
   # @return TRUE si +line+ doit être collée à la ligne précédente
   # 
   def glue_to_previous?(line)
-    line.match(CAN_NOT_BE_NEW_PARAGRAPH) || Options.not_paragraph?(line)    
+    line.match?(CAN_NOT_BE_NEW_PARAGRAPH) || Options.not_paragraph?(line) || line.match?(REG_ONLY_NUMBER)
   end
 
   #@debug
