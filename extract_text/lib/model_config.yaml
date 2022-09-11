@@ -20,6 +20,15 @@
 # 
 :pages_with_one_column: [0]
 # 
+# Les pages à ne pas dégrouper
+# ----------------------------
+# Quand elles ont plus de 3 colonnes ou qu'elles ont des cadres de
+# texte un peu partout. Cette option permet de laisser les textes
+# groupés. Certaines corrections peuvent être nécessaire si des 
+# cadres sont imbriqués
+#
+:pages_not_ungrouped: []
+# 
 # Tolérance Y
 # Permet de gérer les textes qui peuvent être légèrement au-dessus
 # (comme les exposants) ou les textes légèrement en dessous, pour les

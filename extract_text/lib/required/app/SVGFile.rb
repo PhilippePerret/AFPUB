@@ -202,15 +202,6 @@ class SVGFile
     ExtractedFile.save_in_file_debug("groupes-non-sorted", groupes.pretty_inspect)
     ExtractedFile.save_in_file_debug("groupes-non-sorted.c.", groupes_to_code(groupes))
 
-
-    # 
-    # Lorsqu'un groupe a un :y qui ne peut pas suivre un autre
-    # c'est qu'il se trouve à l'intérieur du groupe qui contient son
-    # :y
-    # => Il faut, pour chaque groupe, prendre son xmin et son xmax
-    #    (penser à les dematricer)
-    # => Quand un groupe
-
     # 
     # Maintenant, on se retrouve avec un ensemble de groupes, 
     # +groupes+ qui contient tous les textes.
@@ -223,12 +214,22 @@ class SVGFile
     # 
     # On récupère tous les textes
     # En en profitant pour exclure les textes à exclure
+    # Si les options déterminent que les groupes (cadres) de cette
+    # page doivent rester ensemble, on groupe les textes du groupe
     # 
     textes = []
     groupes.each do |groupe|
-      groupe[:texts].each do |dtexte|
-        next if Options.exclure?(dtexte[:text])
-        textes << dtexte
+      if dont_degroup_this_page?
+        text = groupe[:texts].map do |dtexte|
+          next if Options.exclure?(dtexte[:text])
+          dtexte[:text]
+        end.compact.join("\n")
+        textes << groupe[:texts][0].merge!(text: text)
+      else
+        groupe[:texts].each do |dtexte|
+          next if Options.exclure?(dtexte[:text])
+          textes << dtexte
+        end
       end
     end
 
@@ -270,7 +271,7 @@ class SVGFile
 
   end
 
-  def is_first_before?(agroupe, bgroupe)
+  def is_first_before?(atext, btext)
     @milieu     ||= config[:column_width]
     @ytolerance ||= config[:y_demi_tolerance]
     # 
@@ -283,8 +284,8 @@ class SVGFile
     if page_with_only_one_colonne?
       acolumn = bcolumn = 1
     else
-      acolumn = agroupe[:x] < @milieu ? 1 : 2
-      bcolumn = bgroupe[:x] < @milieu ? 1 : 2
+      acolumn = atext[:x] < @milieu ? 1 : 2
+      bcolumn = btext[:x] < @milieu ? 1 : 2
     end
     if bcolumn == acolumn
       # 
@@ -292,10 +293,10 @@ class SVGFile
       # par leur x s'ils sont à la même hauteur pour avoir vraiment
       # les textes dans le bon ordre.
       # 
-      if agroupe[:y].between?(bgroupe[:y] - @ytolerance, bgroupe[:y] + @ytolerance)
-        agroupe[:x] < bgroupe[:x] ? -1 : 1
+      if atext[:y].between?(btext[:y] - @ytolerance, btext[:y] + @ytolerance)
+        atext[:x] < btext[:x] ? -1 : 1
       else
-        agroupe[:y] < bgroupe[:y] ? -1 : 1
+        atext[:y] < btext[:y] ? -1 : 1
       end
     else
       acolumn < bcolumn ? -1 : 1
@@ -334,6 +335,16 @@ class SVGFile
   # colonne
   def page_with_only_one_colonne?
     config[:column_width] == 0 || config[:pages_with_one_column].include?(page_number)
+  end
+
+  # @return TRUE s'il ne faut pas dégrouper cette page
+  # En règle générale, les textes récupérés dans les SVG sont classés
+  # par hauteur (et par colonne s'il y a deux colonnes) mais dès 
+  # qu'une page présente plus de 2 colonnes, il faut mettre son 
+  # numéro dans l'option :pages_not_ungrouped pour que les groupes 
+  # <g> gardent leur texte ensemble.
+  def dont_degroup_this_page?
+    config[:pages_not_ungrouped].include?(page_number)
   end
 
   # Raccourci

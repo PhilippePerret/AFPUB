@@ -1,6 +1,6 @@
 # Todo list
 
-* Ajouter les pages pour voir le résultat, affiner en conséquence
+* Corriger les bugs ci-dessous
 * Pouvoir décider de répétitions à supprimer (par exemple les "..." de la table des matières)
   - pouvoir préciser à partir de combien on supprime (pour éviter de supprimer des répétitions normales)
 
@@ -8,6 +8,8 @@
 
 
 ## BUGS
+
+* Page 2 : les 3 colonnes sont mal traitées
 
 ## Essais
 

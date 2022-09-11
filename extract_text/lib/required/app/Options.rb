@@ -192,7 +192,8 @@ private
       not_paragraphs:     [],
       excludes:           [],
       pages_with_one_column: [],
-      paragraph_carriage_separator: 1
+      paragraph_carriage_separator: 1,
+      pages_not_ungrouped: []
     }
     table = {}
     if File.exist?(config_yaml_filepath)
