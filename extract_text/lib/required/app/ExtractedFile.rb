@@ -105,7 +105,7 @@ class ExtractedFile
         # 
         next if texte.nil? || texte.empty?
 
-        dtexte = {path:svg_file.text_path, text:texte, svg_file:svg_file}
+        dtexte = {text:texte, svg_file:svg_file}
         all_dtextes << dtexte
 
       end # Loop end on each svg file
@@ -117,7 +117,7 @@ class ExtractedFile
       # 
       if Options.text_per_page?
         all_dtextes.each do |dtexte|
-          File.write(dtexte[:path], dtexte[:text])
+          File.write(dtexte[:svg_file].text_path, dtexte[:text])
         end
       else
         #
