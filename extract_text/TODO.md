@@ -1,27 +1,26 @@
 # Todo list
 
-## 
+* On en est dans TextAffinator.compact qui va rassembler les paragraphes qui doivent. Il faut renforcer l'intelligence de la détection des paragraphes.
 
-* Un fichier définissant les spécificités de la page
-  - largeur de colonne (si colonne)
-  - espace entre texte
-  
-## Textes à traiter
+* Ajouter les pages pour voir le résultat, affiner en conséquence
+* Pouvoir décider de répétitions à supprimer (par exemple les "..." de la table des matières)
+  - pouvoir préciser à partir de combien on supprime (pour éviter de supprimer des répétitions normales)
 
-* page #18 : "Étapes de l’analyse 1. Généralités et contexte"
-  -> Les "1." devraient passer à la ligne
-* page #18 : "Cartographie tonale Pour se préparer"
-  -> Le "Pour se préparer" devrait être à la ligne
-  MAIS on ne peut pas passer systématiquemment à la ligne un mot en capitale car ça passerait tous les noms propres.
-  Voir peut-être s'il n'est pas possible de faire quelque chose au niveau du 'Point' du texte : quand il commence par une capitale, regarder s'il suit son text précédent.
+* Commande `afpub-extract-text -h` pour obtenir de l'aide
+* Command  `afpub-extract-text config` pour créer le fichier configuration
+* Options `--config=path/to/file` pour définir le fichier de configuration (sinon, dans le dossier)
 
+## OPTIONS :
 
-## NOW
-
-* Calculer la vraie position des paragraphes en tenant compte du "g" dans lequel ils se trouvent et la déformation par matrice qui peut les affecter.
 
 ## BUGS
 
-* [Page 3 du Beethoven] 
-  - L'ordre des paragraphes est très mauvais (par exemple, la liste des ouvrages courants et des ouvrages en projet est inversée…)
-  - Les tonalités des morceaux, quand elles existent, se placent sur le morceau précédent…
+* Voir pourquoi les lettres entourées de ronds disparaissent
+* Voir pourquoi les noms de motif disparaissent
+
+## Essais
+
+- (Beethoven) p. 19-20 pour voir si le premier paragraphe de la 20 va bien se retrouver sur le 19.
+  - PAGE 20 On ne doit pas passer à la ligne sur le "F+m", sur le », sur le "Suisse", sur Beethoven
+  - PAGE 24 Le "page 112." devrait être dans le texte (voir où), pas à la fin.
+  - PAGE 32 Devrait comporter les lettres dans des ronds

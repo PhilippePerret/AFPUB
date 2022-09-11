@@ -3,6 +3,8 @@ require 'nokogiri'
 require 'yaml'
 require 'minitest'
 require 'minitest/color'
+require 'pretty_inspect'
+
 
 LIB_FOLDER = __dir__
 APP_FOLDER = File.dirname(__dir__)

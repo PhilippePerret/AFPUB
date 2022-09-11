@@ -9,6 +9,7 @@ class << self
   # @return TRUE is page number +number+ is to be processed.
   # 
   def page_in_range?(number)
+    return true if pages_traited == 'ALL' || pages_traited.include?(number)
     return true if pages_range.nil?
     pages_range.each do |paire|
       min, max = paire
@@ -19,13 +20,28 @@ class << self
     return false
   end
 
+  # @return Les pages à traiter, d'après la configuration
+  def pages_traited
+    @pages_traited ||= begin
+      pgs = config[:pages]
+      if pgs.match('-')
+        startp, endp = psg.split('-').map{|n|n.to_i}
+        (startp..endp).to_a
+      elsif pgs.match(',')
+        psg.split(',').map{|n|n.to_i}
+      else
+        pgs # ALL
+      end
+    end
+  end
+
   # @return TRUE if page number mark is to be written
   def page_number?
-    :TRUE == @page_number ||= true_or_false(not(CLI.options[:page_number] == 'false'))
+    :TRUE == @page_number ||= true_or_false(config[:add_page_number] || not(CLI.options[:page_number] == 'false'))
   end
 
   def text_per_page?
-    :TRUE == @text_per_page ||= true_or_false(CLI.options.key?(:text_per_page) && CLI.options[:text_per_page] != 'false')
+    :TRUE == @text_per_page ||= true_or_false(config[:text_per_page] || CLI.options.key?(:text_per_page) && CLI.options[:text_per_page] != 'false')
   end
 
   # @return TRUE if we don't want tabulation or double space
@@ -46,6 +62,10 @@ class << self
     return false
   end
 
+  ##
+  # Si des éléments sont définis comme n'étant pas des lignes, 
+  # @return TRUE si +line+ est considéré comme un paragraphe
+  # 
   def not_paragraph?(line)
     return false if not_paragraphs.nil?
     not_paragraphs.each do |regexp|
@@ -124,7 +144,7 @@ class << self
   # 
   def load_document_configuration
     Object.const_set('DEFAULT_LANG',        config[:lang])
-    Point.const_set('Y_TOLERANCE',          config[:y_tolerance].to_i)
+    Object.const_set('Y_TOLERANCE',         config[:y_tolerance].to_i)
     Object.const_set('COLUMN_WIDTH',        config[:column_width].to_i)
     Object.const_set('MINIMUM_LINEHEIGHT',  config[:minimum_lineheight].to_i)
   end
@@ -139,6 +159,9 @@ private
   # @return configuration table (with default value added)
   def get_config
     config = {
+      pages: 'ALL',
+      remove_page_number: true,
+      add_page_number: true,
       minimum_lineheight: 100,
       y_tolerance:        70,
       column_width:       1000,
@@ -186,7 +209,7 @@ private
   end
 
   def current_folder
-    @current_folder ||= ExtractedFile.current_folder.folder_path
+    @current_folder ||= ExtractedFile.current.folder
   end
 end #/<< class
 end #/class Options

@@ -3,6 +3,18 @@
 require 'erb'
 
 ##
+# Détruire un fichier ou un dossier et, si c'est un dossier, le
+# recréer si nécessaire.
+# 
+def remove_if_exist?(path, recreate = false)
+	if File.exist?(path)
+		opt = File.directory?(path) ? ' -rf' : ''
+  	`rm#{opt} "#{path}"`
+  end
+  mkdir(path) if recreate
+end
+
+##
 # "Enroule" le code d'un message d'opération.
 #
 # @usage

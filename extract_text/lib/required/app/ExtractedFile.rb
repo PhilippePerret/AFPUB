@@ -2,30 +2,52 @@
 module AfPub
 class ExtractedFile
   class << self
+    
+    attr_accessor :current_svg_file
+
     ##
     # = main point d'entrée =
     # 
     # Extrait le text from all the SVG files of the current
     # folder
     # 
-    def current_folder
-      @current_folder ||= ExtractedFile.new(File.expand_path('.'))
+    def current
+      @current ||= ExtractedFile.new(File.expand_path('.'))
     end
+
+    def debug_folder
+      @debug_folder ||= File.join(current.folder,'__DEBUG__')
+    end
+
+    def remove_debug_folder_or_create
+      remove_if_exist?(debug_folder, true) # true => recreate
+    end
+
+    def save_in_file_debug(filename, code)
+      @i_step ||= 0
+      @i_step += 1 
+      nam = "#{@i_step.to_s.rjust(3,'0')}-PAGE_#{current_svg_file.page_number.to_s.rjust(3,'0')}-#{filename}.txt"
+      pth = File.join(debug_folder, nam)
+      File.write(pth, code)
+    end
+
 
   end #/<< self
 
-  attr_reader :folder_path
+
+  attr_reader :folder
 
   ##
   # Instanciate with full path of svg files folder
-  # 
-  def initialize(folder_path)
-    @folder_path = folder_path
+  #
+  def initialize(folder)
+    @folder = folder
   end
 
   ##
-  # = entrée =
-  # Proceed to extraction
+  # = Point d'entrée du programme =
+  # 
+  # Proceed to extraction in the current folder
   # 
   def proceed
     init
@@ -36,6 +58,8 @@ class ExtractedFile
   def init
     Options.load_document_configuration
     Options.define_errors_and_messages
+    self.class.remove_debug_folder_or_create
+    SVGFile.remove_texts_folder
   end
 
   def export_all_svgs
@@ -46,20 +70,21 @@ class ExtractedFile
     verbose? && puts("Options.pages_range: #{Options.pages_range}".bleu)
 
     # 
-    # Either one big file or one file per page
+    # {Array} Pour mettre tous les textes
     # 
-    flux = nil
-
-    unless Options.text_per_page?
-      flux = File.open(text_file_path,'a')
-    end
+    # Ce sera une liste contenant des hashes qui définissent :
+    #   {path:<chemin d'accès au fichier svg>, text: <le texte>}
+    # 
+    all_dtextes = []
 
     begin
       # 
-      # Loop on sorted svg files
+      # Loop on each sorted svg files
       # 
-      sorted_svg_files.each do |svg_file|
+      sorted_svg_files.each_with_index do |svg_file, idx|
         # +svg_file+ {AfPub::SVGFile}
+
+        self.class.current_svg_file = svg_file
 
         # 
         # In range of files?
@@ -71,27 +96,96 @@ class ExtractedFile
         # 
         # Extract text from svg file
         # 
-        text = svg_file.extract_text
+        # Le texte qui revient ici est entièrement traité.
+        # 
+        texte = svg_file.extract_text
 
         # 
         # Maybe no text at all
         # 
-        next if text.nil? || text.empty?
+        next if texte.nil? || texte.empty?
+
+        dtexte = {path:svg_file.text_path, text:texte, svg_file:svg_file}
+        all_dtextes << dtexte
+
+      end # Loop end on each svg file
+
+      # 
+      # Write the text
+      # --------------
+      # Either in only one file, or per page
+      # 
+      if Options.text_per_page?
+        all_dtextes.each do |dtexte|
+          File.write(dtexte[:path], dtexte[:text])
+        end
+      else
+        #
+        # Add in one fat file
+        # 
 
         # 
-        # Write the text
+        # Maintenant qu'on a tous les textes et qu'ils doivent être
+        # rassemblés dans un unique fichier, on peut voir si le 
+        # début d'un fichier N+1 est la fin du dernier paragraphe du
+        # fichier N.
         # 
-        if Options.text_per_page?
-          File.open(svg_file.text_path, 'wb') do |f|
-            f.puts(text)
-          end
-        else
+        # On le sait si 1) le dernier paragraphe du fichier N n'est
+        # pas "fini" (pas de ponctuation, une parenthèse ouverte,
+        # etc.) ET QUE le premier paragraphe du fichier N+1 peut ne
+        # pas être un début de paragraphe (pas de capitale, parenthè-
+        # fermée seule, etc.)
+        # 
+        # Le cas échéant, on ajoute à la fin du texte N le début du
+        # texte N+1
+        # 
+        nombre_textes = all_dtextes.count
+        for i in 1...nombre_textes
           #
-          # Add text to final file
+          # Le texte avant
           # 
-          flux.puts(text)
+          prevtexte = all_dtextes[i - 1][:text]
+          paragsprev  = prevtexte.split(GROUP_PARAG_DELIMITOR)
+          lastparag   = paragsprev.last
+          # 
+          # Le texte après
+          # 
+          nexttexte   = all_dtextes[i][:text]
+          paragsnext  = nexttexte.split(GROUP_PARAG_DELIMITOR)
+          fistparag   = paragsnext.first
+          # 
+          # On tente de les fusionner
+          # 
+          fusion = TextAffinator.compact(lastparag + "\n" + lastparag)
+          # 
+          # Si la fusion ne contient plus qu'un seul paragraphe,
+          # les deux textes sont liés
+          # Sinon, on ne touche à rien
+          # 
+          if fusion.split("\n\n").count > 1
+            paragsprev[0] = fusion
+            all_dtextes[i - 1][:text] = paragsprev.join(GROUP_PARAG_DELIMITOR)
+            paragsnext.shift
+            all_dtextes[i][:text] = paragsnext.join(GROUP_PARAG_DELIMITOR)
+          end
+        end
+
+        flux = File.open(text_file_path,'a')
+        all_dtextes.each_with_index do |dtexte, idx|
+          # 
+          # Add Page Number Mark if required
+          # 
+          if Options.page_number?
+            titre_page = "Page ##{dtexte[:svg_file].page_number}"
+            dtexte[:text] = "\n\n#{titre_page}\n#{'–'*titre_page.length}\n\n#{dtexte[:text]}"
+          end
+          # 
+          # Write into the uniq file
+          # 
+          flux.puts(dtexte[:text])
         end
       end
+
     rescue Exception => e
       puts "#{e.message}\n#{e.backtrace.join("\n")}".rouge
     else
@@ -125,7 +219,7 @@ class ExtractedFile
   #
   def svg_files
     @svg_files ||= begin
-      Dir["#{folder_path}/*.svg"]
+      Dir["#{folder}/*.svg"]
     end
   end
 
@@ -168,7 +262,7 @@ class ExtractedFile
   end
 
   def text_file_path
-    @text_file_path ||= File.join(folder_path, text_file_name)
+    @text_file_path ||= File.join(folder, text_file_name)
   end
 
   def text_file_name
@@ -176,7 +270,7 @@ class ExtractedFile
   end
 
   def folder_name
-    @folder_name ||= File.basename(folder_path)
+    @folder_name ||= File.basename(folder)
   end
 
 end #/class ExtractFile
