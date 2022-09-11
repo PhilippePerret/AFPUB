@@ -74,9 +74,12 @@ class ExtractedFile
   # Proceed to extraction in the current folder
   # 
   def proceed
+    now = Time.now
+    puts "------- [#{now.to_i}] DÉBUT DE L'EXTRACTION #{now} --------".bleu
     init
     folder_conform? || return
     export_all_svgs
+    puts "------- [#{now.to_i}]   FIN DE L'EXTRACTION #{Time.now} --------".bleu
   end
 
   def init
@@ -170,13 +173,13 @@ class ExtractedFile
           # 
           prevtexte  = all_dtextes[i - 1][:text]
           prevparags = prevtexte.split("\n")
-          prev_parag = prevparags.last
+          prev_parag = prevparags.last || next
           # 
           # Le texte après
           # 
           nexttexte   = all_dtextes[i][:text]
           nextparags  = nexttexte.split("\n")
-          next_parag  = nextparags.first
+          next_parag  = nextparags.first || next
           # 
           # On tente de les fusionner
           # 

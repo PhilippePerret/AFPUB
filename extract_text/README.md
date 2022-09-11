@@ -2,182 +2,18 @@
 
 To extract text from an Affinity Publisher File.
 
-## Extract text
+Run the `extract_text.rb` script in console.
 
-1. [Check the prerequises](#prerequises),
-2. Export the Affinity Publisher Document with:
-    - format: SVG (numeric, hight quality), 
-    - area: All Pages (not spreads).
-3. Create optionaly some [usefull definitions](#usefull-definitions),
-3. open a new Terminal window at the new SVG folder where .svg exported pages lie,
-4. run `afpub-extract-text` in the Terminal window
-5. find the exported text in the `_<file affixe>_.txt` file at the top of the SVG folder (for instance, if the init file name is `MyBook.afpub`, the text file name would be `_MyBook_.txt`).
+## Help
 
+Run in a Terminal:
 
-## Command line
+~~~bash
 
-```
-
-$> cd /path/to/SVGs/folder # or contextual menu "New Terminal at folder"
-$> afput-extract-text[ options]
-
-```
-
-**Options**
-
-```
---pages=<range>   
-                
-                Only theses pages.
-                Examples:
-                  --pages=2-6 (pages from 2 to 6)
-                  --pages=2,6 (pages 2 and 6)
-                  --pages=2,6-8,12 (pages 2, 6 to 8 and 12)
-
---page_number=true|false
-                  
-                  If true (default), the script add 'Page X' mark
-                  before each page treated.
-                  Example:
-                    --page_number=false
-                    --page_number  # => true
-                  
-
---paragraph_separator=<type>    
-                  
-                  Paragraph separator. Values : 'simple' or
-                    'double' (default)
-                   Example: 
-                      --return=simple
-
---column_width=<px>
-                  
-                  If double columns, the width of the left column,
-                  in pixels.
-                  Example: 
-                      --column_width=152
-
---lang=<lang>   
-
-                  To define the UI language. Available: 'en' (english)
-                  or 'fr' (french).
-                  
---single_space=true|false
-
-									To replace every tabulation and double space with single 
-									white space. 
-									Default: true
-									Example:
-											--single_space=false
-                      --single_space  # => true
-
---text_per_page=true|false
-                  
-                  If true, ouput one text file per page rather a
-                  uniq file with the whole text.
-                  Default: false
-                  Example:
-                      --text_per_page=true
-                      --text_per_page   # => true
-```
----
-
-<a name="usefull-definitions"></a>
-
-## Usefull extra definitions
-
-You can define some usefull definitions in some files to refine the extraction processus.
-
-### Configuration file
-
-We can define some document definitions (measurements) to facilitate extraction.
-
-Configuration can be text file (config.txt) or [YAML](https://yaml.org) file. The file must be placed in the SVGs folder.
-
-#### config.yaml
-
-~~~yaml
----
-# App language (fr, en)
-lang:                en
-# If some pages contains 2 columns 
-column_width:        1000 # px
-# Line-height between two paragraphs
-minimum_lineheight:  100  # px
-# Maximum amount of pixels to consider that a
-# text is on the same line of another.
-y_tolerance:         70
-~~~
-#### config.txt
-
-~~~text
-# App language (fr, en)
-lang:              = en
-# If some pages contains 2 columns 
-column_width       = 1000
-# Line-height between two paragraphs
-minimum_lineheight = 100
-# Maximum amount of pixels to consider that a
-# text is on the same line of another.
-y_tolerance        = 70
+cd path/to/this/folder
+ruby ./extract_text.rb help
 
 ~~~
-
-### Excluded nodes
-
-We can define excludes nodes in the **`exclude_nodes.txt`** file (in the main SVG folder) with litteral or regular expressions.
-
-~~~
-# in ./exclude_nodes.txt
-
-# --- Litteral ---
-@copyrigth
-
-# --- Regular ---
-# All texts with *only* numbers
-/^[0-9]+$/
-~~~
-
-
-
-### Treatment as span (not paragraph)
-
-We can define in the **`not_paragraphs.txt`** file some texts that should not be treated as paragraph even they look like paragraph. See below.
-
-~~~
-# in ./not_paragraphs.txt
-
-# A comment ignored
-
-Maj.
-~~~
-
-Even if it looks like a paragraph (capitalize letter and dot), if this text is along in a line, it will not be treated as a paragraph.
-
-
-This file can contain regular expressions:
-
-~~~
-# in ./not_paragraphs.txt
-# comments
-
-/^[A-G]m?$/
-~~~
-
-Even if 'Bm' start with a capital letter, it will not be treated as a paragraph because it matches de above regular expression.
-
-Each expression should be writen one above the other.
-
-~~~
-# in ./not_paragraphs.txt
-
-FirstException
-SecondException
-...
-NiemeException
-
-~~~
-
 
 ## Annexe
 

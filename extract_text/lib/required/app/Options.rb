@@ -57,6 +57,7 @@ class << self
     return false if not_paragraphs.nil?
     not_paragraphs.each do |regexp|
       if line.match?(regexp)
+        # puts "LINE '#{line}' ne peut pas être un paragraphe"
         verbose? && puts("+ Line #{line.inspect} n'est pas un paragraphe".bleu)
         return true 
       end
@@ -80,10 +81,11 @@ class << self
 
   def exclusions 
     @exclusions ||= begin
-      ex = config[:excludes]||[]
-      ex.map do |exclus|
+      (config[:excludes]||[]).map do |exclus|
         if exclus.is_a?(String)
           /^#{exclus}$/
+        elsif exclus.start_with?('/') && exclus.end_with?('/')
+          eval(exclus)
         else
           exclus
         end
@@ -92,7 +94,15 @@ class << self
   end
 
   def not_paragraphs
-    @not_paragraphs ||= config[:not_paragraphs]
+    @not_paragraphs ||= begin
+      config[:not_paragraphs]&.map do |cond|
+        if cond.start_with?('/') && cond.end_with?('/')
+          eval(cond)
+        else
+          /^#{cond}$/
+        end
+      end
+    end
   end
 
   def column_width
@@ -175,11 +185,12 @@ private
       add_page_number: true,
       minimum_lineheight: 100,
       y_tolerance:        30,
-      column_width:       1000,
+      column_width:       0,
       lang:               'en',
       max_word_per_title: 3,
       not_paragraphs:     [],
-      excludes:           []
+      excludes:           [],
+      pages_with_one_column: []
     }
     table = {}
     if File.exist?(config_yaml_filepath)

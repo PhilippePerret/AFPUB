@@ -56,8 +56,6 @@ class SVGFile
   # Ce sera corrigé ensuite.
   # 
   def get_texte_brut
-    now = Time.now
-    puts "------- [#{now.to_i}] DÉBUT DE L'EXTRACTION #{now} --------".bleu
     # 
     # Nouvelle extraction, en simplifiant la relève.
     # On ne prend plus des nœuds, on extrait tout de suite leur
@@ -282,8 +280,12 @@ class SVGFile
     # 2. Si le groupe est nettement (± 14) plus bas, il est après
     # 3. Sinon, s'il est plus à droite, il est aussi après
     # 
-    acolumn = agroupe[:x] < @milieu ? 1 : 2
-    bcolumn = bgroupe[:x] < @milieu ? 1 : 2
+    if page_with_only_one_colonne?
+      acolumn = bcolumn = 1
+    else
+      acolumn = agroupe[:x] < @milieu ? 1 : 2
+      bcolumn = bgroupe[:x] < @milieu ? 1 : 2
+    end
     if bcolumn == acolumn
       # 
       # On classe les groupes par les y (hauteur) d'abord, puis
@@ -326,6 +328,12 @@ class SVGFile
     newx = a * oldx + c * oldy + e  
     newy = b * oldx + d * oldy + f
     return [newx, newy]
+  end
+
+  # @return TRUE si le fichier courant est une page avec une seule
+  # colonne
+  def page_with_only_one_colonne?
+    config[:column_width] == 0 || config[:pages_with_one_column].include?(page_number)
   end
 
   # Raccourci

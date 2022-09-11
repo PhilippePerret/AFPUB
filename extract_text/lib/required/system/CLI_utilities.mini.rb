@@ -1,7 +1,7 @@
 # encoding: UTF-8
 =begin
 
-  Version 3.8.2
+  Version 3.8.3
 
   (cf. l'historique en bas de fichier)
 
@@ -163,8 +163,44 @@ def puts(msg)
   end
 end
 
-def less(texte)
+def less(texte, line_width = nil)
+  texte = split_texte_by(texte, line_width) unless line_width.nil?
   exec "echo \"#{texte.gsub(/\"/,'\\"')}\" | less -r"
+end
+
+def split_texte_by(full_texte, line_width)
+  full_texte.split("\n").map do |texte|
+    has_bullet = texte.strip.start_with?('* ')
+    main_indent = ""
+    if has_bullet
+      unless texte.start_with?('* ')
+        main_indent = ' ' * texte.match(/^( +)/).to_a[1].length
+      end
+    end
+    lines  = []
+    parag   = ""
+    mots = mots_of(texte, true)
+    while mot = mots.pop
+      if parag.length + mot.length > line_width
+        lines << parag
+        parag = ""
+      end
+      parag << " #{mot}"
+    end
+    # Le dernier
+    if parag.length > 0
+      lines << parag
+    end
+    main_indent + lines.join("\n#{has_bullet ? main_indent+'  ' : ''}")
+  end.join("\n")
+end
+def mots_of(texte, reverse_it = false)
+  res = texte.split
+  if reverse_it
+    res.reverse
+  else
+    res
+  end
 end
 
 def path_exists_or_raise(path, what = "fichier", solution = nil)
@@ -198,6 +234,11 @@ end
 =begin
 
 HISTORIQUE DES VERSIONS
+* 3.8.3
+      - Un deuxième argument dans less permet de spécifier 
+      la longueur de ligne maximum attendue. Cela permet de ne
+      pas les couper dans le texte original.
+      - Ajout de la méthode 'split_texte_by'
 * 3.8.2
       Suppression de la méthode labelize (doublon avec la 
       classe Tableizor)

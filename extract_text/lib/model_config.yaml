@@ -7,10 +7,18 @@
 # 
 # Largeur de colonne dans le cas où le texte soit construit dans
 # des doubles colonnes.
+# Mettre à 0 s'il y a une seule colonne par page.
 # Noter que pour le moment, on ne peut pas traiter trois colonnes.
 # La valeur donnée est en pixels.
 # 
 :column_width: 1000
+# 
+# Si la largeur de colonne est définie (cf. ci-dessus), on peut 
+# définir les pages qui ne contiennent pas de colonnes (comme la 
+# table des matières par exemple — cela permet de ne pas considérer
+# le numéro de la page sur une autre colonne)
+# 
+:pages_with_one_column: [0]
 # 
 # Tolérance Y
 # Permet de gérer les textes qui peuvent être légèrement au-dessus
