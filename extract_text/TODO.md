@@ -1,8 +1,5 @@
 # Todo list
 
-* Plutôt qu'un fichier séparé pour les mots à considérer comme des paragraphes, mettre dans la configuration
-* Config : nombre de mots par titre (3 par défaut)
-
 * Ajouter les pages pour voir le résultat, affiner en conséquence
 * Pouvoir décider de répétitions à supprimer (par exemple les "..." de la table des matières)
   - pouvoir préciser à partir de combien on supprime (pour éviter de supprimer des répétitions normales)

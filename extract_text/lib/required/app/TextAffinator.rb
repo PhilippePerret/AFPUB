@@ -206,7 +206,7 @@ class << self
       is_new_paragraph = line.match?(REG_END_PARAGRAPH)
 
       # Usefull below
-      maybe_title = line.split(" ").count < 4
+      maybe_title = line.split(" ").count <= Options.max_word_per_title
       
       # 
       # Reasons of current line which confirm that next paragraph

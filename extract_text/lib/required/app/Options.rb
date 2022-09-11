@@ -71,6 +71,10 @@ class << self
     return false
   end
 
+  def max_word_per_title
+    @max_word_per_title ||= config[:max_word_per_title]
+  end
+
   # --- /public methods ---
 
 
@@ -173,6 +177,7 @@ private
       y_tolerance:        30,
       column_width:       1000,
       lang:               'en',
+      max_word_per_title: 3,
       not_paragraphs:     [],
       excludes:           []
     }

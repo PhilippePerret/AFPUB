@@ -37,6 +37,14 @@
 # Si true, on fait un fichier texte par page
 # 
 :text_per_page: false
+#
+# Nombre de mots maximum par titre
+# --------------------------------
+# Permet de reconnaitre un titre. En reconnaissant un titre, qui
+# qui par nature termine par une minuscule, donc un caractère qui
+# laisserait penser que la suite doit être attachée, on n'attache pas
+# cette suite.
+:max_word_per_title: 3
 # 
 # Segments de texte à exclure
 # Chaque élément peut être un texte explicite ou une expression 
