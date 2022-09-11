@@ -153,6 +153,10 @@ class << self
     @config ||= get_config
   end
 
+  def config_yaml_filepath
+    @config_yaml_filepath ||= File.join(current_folder, 'config.yaml')
+  end
+
 private
 
   ##
@@ -163,7 +167,7 @@ private
       remove_page_number: true,
       add_page_number: true,
       minimum_lineheight: 100,
-      y_tolerance:        70,
+      y_tolerance:        30,
       column_width:       1000,
       lang:               'en',
     }
@@ -179,6 +183,7 @@ private
       table = YAML.load_file(config_yaml_filepath)
     end
     config.merge!(table)
+    config.merge!(y_demi_tolerance: config[:y_tolerance] / 2)
   end
 
   ##
@@ -203,9 +208,6 @@ private
 
   def config_txt_filepath
     @config_filepath ||= File.join(current_folder, 'config.txt')
-  end
-  def config_yaml_filepath
-    @config_filepath ||= File.join(current_folder, 'config.yaml')
   end
 
   def current_folder

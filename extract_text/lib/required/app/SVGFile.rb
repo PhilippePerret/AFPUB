@@ -271,7 +271,8 @@ class SVGFile
   end
 
   def is_first_before?(agroupe, bgroupe)
-    @milieu ||= config[:column_width]
+    @milieu     ||= config[:column_width]
+    @ytolerance ||= config[:y_demi_tolerance]
     # 
     # Le classement des groupes passe par plusieurs strates :
     # 1. Si le groupe est dans la colonne gauche et que l'autre est
@@ -287,7 +288,7 @@ class SVGFile
       # par leur x s'ils sont à la même hauteur pour avoir vraiment
       # les textes dans le bon ordre.
       # 
-      if agroupe[:y].between?(bgroupe[:y] - 15, bgroupe[:y] + 15)
+      if agroupe[:y].between?(bgroupe[:y] - @ytolerance, bgroupe[:y] + @ytolerance)
         agroupe[:x] < bgroupe[:x] ? -1 : 1
       else
         agroupe[:y] < bgroupe[:y] ? -1 : 1

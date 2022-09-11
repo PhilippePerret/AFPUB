@@ -1,0 +1,42 @@
+---
+# FICHIER DE CONFIGURATION DE L'EXTRATION DE TEXTE
+#
+# Langue pour l'interface
+# 
+:lang: 'fr'
+# 
+# Largeur de colonne dans le cas où le texte soit construit dans
+# des doubles colonnes.
+# Noter que pour le moment, on ne peut pas traiter trois colonnes.
+# La valeur donnée est en pixels.
+# 
+:column_width: 1000
+# 
+# Tolérance Y
+# Permet de gérer les textes qui peuvent être légèrement au-dessus
+# (comme les exposants) ou les textes légèrement en dessous, pour les
+# considérer comme appartement à la même ligne. La valeur donnée est
+# en pixels
+:y_tolerance: 30
+# 
+# Les pages à traiter
+# ALL ou "1-9" pour un rang ou "2,1,8" pour des pages isolées
+# 
+:pages: ALL
+#
+# Suppression des numéros seuls en bas ou en haut de page
+# 
+:remove_page_number: true
+#
+# La marque "PAGE #<XXX>" pour délimiter le texte dans le texte
+# complet. Cela permet de repérer très facilement la page du texte
+# à laquelle appartient le texte.
+# 
+:add_page_number: true
+# 
+# Si true, on fait un fichier texte par page
+# 
+:text_per_page: false
+
+# Ne servent plus :
+:minimum_lineheight: 100

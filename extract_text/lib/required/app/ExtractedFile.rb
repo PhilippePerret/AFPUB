@@ -32,6 +32,30 @@ class ExtractedFile
     end
 
 
+    ##
+    # Méthode créant le fichier configuration dans le dossier
+    # courant
+    def create_config
+      clear
+      if File.exist?(Options.config_yaml_filepath)
+        puts "Config file 'config.yaml' already exists.\n\n".jaune
+      else
+        puts "* I build Config file…".bleu
+        src_path = template_config_file
+        dst_path = Options.config_yaml_filepath
+        `cp "#{src_path}" "#{dst_path}"`
+        if File.exist?(dst_path)
+          puts "= Config file 'config.yaml' built with success in current folder.\n(#{dst_path})".vert
+        else
+          puts "# Bizarrrement, le fichier n'a pas pu être créé…".rouge
+        end
+      end
+    end
+
+    def template_config_file
+      @template_config_file ||= File.join(APP_FOLDER,'lib','model_config.yaml')
+    end
+
   end #/<< self
 
 

@@ -9,6 +9,8 @@ require_relative 'lib/required'
 begin
   if help? || ['help','aide'].include?(ARGV[0])
     AfPub::ExtractedFile.show_help
+  elsif ARGV[0] == 'config'
+    AfPub::ExtractedFile.create_config
   else
     AfPub::ExtractedFile.current.proceed
   end
