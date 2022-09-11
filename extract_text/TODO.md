@@ -6,7 +6,6 @@
 
 * Commande `afpub-extract-text -h` pour obtenir de l'aide
 * Command  `afpub-extract-text config` pour créer le fichier configuration
-* Options `--config=path/to/file` pour définir le fichier de configuration (sinon, dans le dossier)
 
 ## OPTIONS :
 

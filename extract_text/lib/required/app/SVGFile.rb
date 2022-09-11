@@ -253,14 +253,12 @@ class SVGFile
       text_index = nil
       textes.each_with_index do |dtexte, idx|
         if dtexte[:text].match(/^[0-9]+$/.freeze) && dtexte[:text].to_i == page_number
-          puts "SUPPRESSION NUMÉRO PAGE #{page_number}"
           text_index = idx.freeze
           break
         end
       end
       unless text_index.nil?
         supp = textes.delete_at(text_index)
-        puts "SUPP: #{supp}"
       end
     end
 
@@ -360,101 +358,6 @@ class SVGFile
       "TX x :#{dtexte[:x].to_s.ljust(6)} y :#{dtexte[:y].to_s.ljust(6)} #{dtexte[:text]}" 
     end.join("\n")
   end
-
-  # ##
-  # # Text nodes 
-  # # ----------
-  # # Some of them are in a <g> tag with matrix transformation so we
-  # # must calculate the real positions (x, y).
-  # # 
-  # # @return text nodes as {APNode} instances
-  # #   - sorted
-  # #   - only the right ones (exclusion)
-  # # 
-  # def text_nodes
-  #   @text_nodes # ||= get_text_nodes
-  # end
-  # def get_text_nodes
-  #   xdoc = Nokogiri::XML(File.read(path))
-  #   verbose? && puts("* Get text nodes in #{path}".bleu)
-  #   text_tag_index = 0
-  #   node_groupes = []
-  #   xdoc.css('svg > text, svg > g').each do |node|
-  #     if node.name == 'text'
-  #       inode = APNode.new(self, node, text_tag_index)
-  #       text_tag_index += 1
-  #       # 
-  #       # Le groupe, même s'il n'aura qu'un seul élément
-  #       # 
-  #       igroup = APNodeGroup.new(nil)
-  #       igroup.add_text_node(inode)
-  #       verbose? && puts("+++ relève de text node (#{igroup.point.inspect}) : #{node.text}")
-  #     else
-  #       # 
-  #       # Traitement d'un groupe de texte (g)
-  #       # 
-  #       # Note : on ne reclasse pas les lignes à l'intérieur 
-  #       # d'un groupe de texts. C'est seulement les groupes 
-  #       # ensemble qu'il faut classer.
-  #       # 
-  #       # Note 2 : on n'est pas sûr qu'un groupe contienne des
-  #       # noeuds textuels. Donc on les relève d'abord, avant de
-  #       # créer l'instance.
-  #       # 
-  #       text_node_list = []
-  #       debug_list = []
-  #       node.css('text').each do |cnode|
-  #         debug_list << "+++ relève de text node in g : #{cnode.text}"
-  #         text_node_list << APNode.new(self, cnode, text_tag_index)
-  #         text_tag_index += 1
-  #       end
-  #       if text_node_list.any?
-  #         igroup = APNodeGroup.new(node)
-  #         igroup.text_nodes = text_node_list
-  #         if verbose?
-  #           puts "\n+++ Groupe <g> (#{igroup.point.inspect})"
-  #           puts debug_list.join("\n")
-  #         end
-  #       end
-  #     end
-  #   end#/ xdoc.css.each
-    
-  #   # 
-  #   # Nodes sorting
-  #   #
-  #   # Cela consiste à classer d'abord les groupes de noeud puis
-  #   # à prendre leurs textes dans l'ordre
-  #   # 
-  #   nodes = []
-  #   APNodeGroup.groups.sort do |agroup, bgroup|
-  #     agroup.after?(bgroup) ? -1 : 1
-  #   end.each do |group|
-  #     nodes += group.text_nodes
-  #   end
-
-  #   #
-  #   # Nodes exclusion (if any)
-  #   # 
-  #   nodes = nodes.reject do |node|
-  #     Options.exclude_nodes && Options.excluded_node?(node)        
-  #   end
-
-  #   if verbose? || debug?
-  #     nodes.each do |node|
-  #       puts "-- #{node.text}"
-  #     end
-  #   end
-
-  #   # 
-  #   # Reinit @index in nodes
-  #   # 
-  #   nodes.each_with_index do |node, idx|
-  #     node.index = idx
-  #   end
-
-  #   @text_nodes = nodes
-  # end
-  # #/get_text_nodes
 
   def page_number
     @page_number ||= filename.match(/_([0-9]+)\.svg$/).to_a[1].to_i

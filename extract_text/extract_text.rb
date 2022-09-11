@@ -7,7 +7,11 @@
 =end
 require_relative 'lib/required'
 begin
-  AfPub::ExtractedFile.current.proceed
+  if help? || ['help','aide'].include?(ARGV[0])
+    AfPub::ExtractedFile.show_help
+  else
+    AfPub::ExtractedFile.current.proceed
+  end
 rescue Exception => e
   puts e.message.rouge
   puts e.backtrace.join("\n").rouge
