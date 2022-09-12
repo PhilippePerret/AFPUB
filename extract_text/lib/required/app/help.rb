@@ -38,7 +38,12 @@ PROCÉDURE DE RÉCUPÉRATION D'UN TEXTE
 * définir la configuration si le fichier config.yaml a été créé le dossier,
 * jouer la commande {{afpub-extract-text}}
 
-Dans le dossier des images SVG est alors créé un fichier qui contient le texte. Il est toujours nécessaire de le corriger un peu.
+Dans le dossier des images SVG est alors créé un fichier qui contient le texte. Lire la note suivante.
+
+NOTE SUR L'EXTRACTION
+---------------------
+
+Quel que soit l'algorithme d'extraction utilisé, il est impossible d'obtenir un document correspondant parfaitement à la réalité. Il est donc toujours indispensable de prendre le texte final et de l'affiner en fonction du résultat.
 
 CONFIGURATION
 -------------
@@ -94,7 +99,13 @@ TEXT EXTRACTION PROCEDURE
 * set the configuration if the config.yaml file was created in the folder,
 * play the command {{afpub-extract-text}}
 
-In the folder of SVG images is then created a file that contains the text. It is always necessary to correct it a little.
+In the folder of SVG images is then created a file that contains the text. Read the following note.
+
+NOTE ON EXTRACTION
+------------------
+
+Whatever the extraction algorithm used, it is impossible to obtain a document that corresponds perfectly to reality. It is therefore always necessary to take the final text and refine it according to the result.
+
 
 CONFIGURATION
 -------------
