@@ -19,7 +19,7 @@ REG_ONLY_NUMBER = /^[0-9]+$/
 
 # If the beginning of a line match this regexp, it must be glued to
 # the previous paragraph (maybe with a white space, see below).
-CAN_NOT_BE_NEW_PARAGRAPH = /^[a-zàâôöñçëéêèîïùûü\)\:\,\+»\.]/.freeze
+FIRST_CHAR_CANT_START_NEW_PARAG = /^[a-zàâôöñçëéêèîïùûü\)\:\,\+»\.]/.freeze
 
 TRAILING_IS_LOWERCASE = /[a-zàâôöñçëéêèîïùûü]$/.freeze
 
@@ -30,12 +30,12 @@ CAN_BE_NEW_PARAGRAPH = /^[A-ZÂÀÖÔÉÈÊËÎÏÛÙÜ0-9]/.freeze
 # If the line ends with these character, next line is not to be
 # adding a white space
 TRAILING_WITHOUT_SPACE_AFTER = /[\(]$/ 
-# If the line is one of these, next line must be glued to it  (with 
-# a white space)
-ONLY_DETERMINANT = /^(Les|Le|La|Une|Un|Des)$/
 # If the line ends with one of these, next line must be glued to
 # it (with a white space)
 END_WITH_DETERMINANT = /(les|la|le|du|de|,)$/
+
+# Les fins de ligne qui ne peuvent pas être des fins de paragraphe
+TRAILING_CANT_BE_ENDING = /[,\(]$/
 
 REG_LISTING = / ?([–\*•])[ \t]([^–\*•]+[,\.])/
 REG_LISTING_NUM = / ?([0-9]+[\)\.])[ \t]+(.*?[,\.])/
@@ -71,8 +71,10 @@ class << self
   # 
   def affine(texte)
     texte = texte.gsub(/\t/, ' ')
-    puts "\n\n\nTexte :\n#{texte}\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-    finalize texte.split("\n\n").map { |p|compact(p) }.join(GROUP_PARAG_DELIMITOR)
+    # puts "\n\n\nTexte avant compactage et finalisation :\n#{texte}\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    # finalize texte.split("\n\n\n").map { |p|compact(p) }.join(GROUP_PARAG_DELIMITOR)
+    finalize compact(texte)
+    # finalize texte
   end
 
 
@@ -101,7 +103,7 @@ class << self
   def compact(text)
     paragraphs = [''] # if the first line starts with '[a-z]'
     
-    #
+    # 
     # La ligne précédente
     # 
     previous_line = nil
@@ -152,7 +154,6 @@ class << self
       # puts "ligne (#{line.empty?.inspect}) = #{line}"
 
       if line.empty?
-        puts "Ligne vide".jaune
         glue_to_previous = false
         is_new_paragraph = true
         no_space_to_line = true
@@ -161,9 +162,19 @@ class << self
         # si la ligne commence par une lettre minuscule, on sait 
         # qu'elle ne peut pas être un nouveau paragraphe, qu'elle doit
         # être collée à la ligne précédente.
-        unless glue_to_previous === false
-          glue_to_previous = glue_to_previous || glue_to_previous?(line)
+        if glue_to_previous === true
+          # Rien à faire
+        elsif glue_to_previous === false
+          # Rien à faire
+        elsif is_new_paragraph === true
+          glue_to_previous = false
+        elsif is_new_paragraph === false
+          glue_to_previous = true
+        else
+          glue_to_previous = glue_to_previous?(line, previous_line)
         end
+
+        no_space_to_line = false
 
         #
         # Attention, ça n'est pas la même chose que :
@@ -171,19 +182,12 @@ class << self
         # is_new_paragraph à faux que si glue_to_previous est explici-
         # tempent positive.
         # 
-        if glue_to_previous
+        if glue_to_previous === true
           is_new_paragraph = false
         else
           is_new_paragraph = is_new_paragraph || line.match?(CAN_BE_NEW_PARAGRAPH)
         end
 
-        # 
-        # Les raisons qui font qu'on ne doit pas ajouter d'espace 
-        # avant la ligne.
-        # Note : a pu être déterminé avant.
-        if is_new_paragraph
-          no_space_to_line = true
-        end
       end # si la ligne n'est pas vide
 
       #
@@ -191,15 +195,17 @@ class << self
       # --------------
       # 
 
-      # 
-      # Sauf dans le cas où il ne faille pas ajouter d'espace à la
-      # ligne, on lui colle une espace avant
-      # 
-      line = " #{line}" unless no_space_to_line
-
       if is_new_paragraph
         paragraphs << line
       else
+        # 
+        # Sauf dans le cas où il ne faille pas ajouter d'espace à la
+        # ligne, on lui colle une espace avant
+        # 
+        line = " #{line}" unless no_space_to_line
+        # 
+        # On colle au précédent paragraphe
+        # 
         paragraphs[-1] << line
       end
 
@@ -218,46 +224,52 @@ class << self
       # (*) Se souvenir que les segments de texte qui se trouvent sur
       # la même ligne ont déjà été rassemblés en une seule ligne.
       # 
-      is_new_paragraph = is_not_empty_line && line.match?(REG_END_PARAGRAPH)
-
-      # Usefull below
-      maybe_title = is_not_empty_line && (line.split(" ").count <= Options.max_word_per_title)
-      
-      # 
-      # Reasons of current line which confirm that next paragraph
-      # must be
-      glue_to_previous = 
-        is_not_empty_line && (
-          (line.match?(TRAILING_IS_LOWERCASE) && not(maybe_title)) ||
-          line.match?(ONLY_DETERMINANT)       || 
-          line.match?(END_WITH_DETERMINANT)   ||
-          line.match?(OPENED_PAIR_NOT_CLOSED)
-        )
-
-      # Rédhibitoire pour coller : que la ligne courante soit une
-      # ligne vide.
-      glue_to_previous = false if line == ''
-
-      verbose? && glue_to_previous && puts("  -> Le prochain texte doit coller.")
-    
-      no_space_to_line = is_not_empty_line && line.match?(TRAILING_WITHOUT_SPACE_AFTER)
+      glue_to_previous = nil
+      is_new_paragraph = nil
 
       #
-      # Open chars waiting for close
-      # 
-      if is_not_empty_line && line.match?(REG_CHARS_WITH_WAITING_CHAR)
-        waiting_character = 
-          case line
-          when REG_OACCO_WITHOUT_FACCO then '}'
-          when REG_OPAR_WITHOUT_FPAR   then ')'
-          when REG_OGUIL_WITHOUT_FGUIL then '"'
-          when REG_OCHEV_WITHOUT_FCHEV then '»'
-          when REG_OCRO_WITHOUT_FCRO   then ']'
-          end
-        waiting_character = /\\#{Regexp.escape(waiting_character)}/
-      else
-        waiting_character = nil
-      end
+      # On conserve la ligne précédente
+      previous_line = line
+
+      # is_new_paragraph = is_not_empty_line && line.match?(REG_END_PARAGRAPH)
+
+      # # Usefull below
+      # maybe_title = is_not_empty_line && (line.split(" ").count <= Options.max_word_per_title)
+      
+      # # 
+      # # Reasons of current line which confirm that next paragraph
+      # # must be
+      # glue_to_previous = 
+      #   is_not_empty_line && (
+      #     (line.match?(TRAILING_IS_LOWERCASE) && not(maybe_title)) ||
+      #     line.match?(END_WITH_DETERMINANT)   ||
+      #     line.match?(OPENED_PAIR_NOT_CLOSED)
+      #   )
+
+      # # Rédhibitoire pour coller : que la ligne courante soit une
+      # # ligne vide.
+      # glue_to_previous = false if line == ''
+
+      # verbose? && glue_to_previous && puts("  -> Le prochain texte doit coller.")
+    
+      # no_space_to_line = is_not_empty_line && line.match?(TRAILING_WITHOUT_SPACE_AFTER)
+
+      # #
+      # # Open chars waiting for close
+      # # 
+      # if is_not_empty_line && line.match?(REG_CHARS_WITH_WAITING_CHAR)
+      #   waiting_character = 
+      #     case line
+      #     when REG_OACCO_WITHOUT_FACCO then '}'
+      #     when REG_OPAR_WITHOUT_FPAR   then ')'
+      #     when REG_OGUIL_WITHOUT_FGUIL then '"'
+      #     when REG_OCHEV_WITHOUT_FCHEV then '»'
+      #     when REG_OCRO_WITHOUT_FCRO   then ']'
+      #     end
+      #   waiting_character = /\\#{Regexp.escape(waiting_character)}/
+      # else
+      #   waiting_character = nil
+      # end
 
     end
 
@@ -271,24 +283,53 @@ class << self
     #
     # @return all paragraphs as string
     # 
-    return paragraphs.join(GROUP_PARAG_DELIMITOR)
+    # return paragraphs.join(GROUP_PARAG_DELIMITOR)
+    return paragraphs.join("\n")
   end
   #/compact
 
   ##
   # @return TRUE si +line+ doit être collée à la ligne précédente
   # 
-  def glue_to_previous?(line)
-    line.match?(CAN_NOT_BE_NEW_PARAGRAPH) || 
-    Options.not_paragraph?(line) || 
-    line.match?(REG_ONLY_NUMBER)
+  def glue_to_previous?(line, previous_line)
+    return true   if line_can_not_be_paragraph?(line)
+    return true   if Options.not_paragraph?(line)
+    return true   if line.match?(REG_ONLY_NUMBER)
+    return true   if line_wait_for_trailing?(previous_line)
+    return false  if line_is_ended_paragraph?(previous_line)
+    return false  if line_can_be_paragraph?(line)
+  end
+
+  # @return TRUE si la ligne est forcément un paragraphe fini
+  def line_is_ended_paragraph?(line)
+    line.match?(REG_END_PARAGRAPH)
+  end
+
+  # @return TRUE si la ligne +line+ requiert nécessairement une
+  # suite. Par exemple si elle se termine par une virgule ou une
+  # parenthèse ouverte.
+  def line_wait_for_trailing?(line)
+    return true if line.match?(TRAILING_CANT_BE_ENDING)
+    return true if line.match?(REG_CHARS_WITH_WAITING_CHAR)
+    return true if line.match?(OPENED_PAIR_NOT_CLOSED)
+
+    return false
+  end
+
+  # @return TRUE si la ligne +line+ ne peut pas être un nouveau
+  # paragraphe.
+  def line_can_not_be_paragraph?(line)
+    line.match?(FIRST_CHAR_CANT_START_NEW_PARAG)     
+  end
+
+  def line_can_be_paragraph?(line)
+    
   end
 
   #@debug
   def debug_line(line)
     puts "--line: #{line.inspect}"
-    puts "  CAN_NOT_BE_NEW_PARAGRAPH           : #{line.match?(CAN_NOT_BE_NEW_PARAGRAPH).inspect}"
-    puts "  ONLY_DETERMINANT  : #{line.match?(ONLY_DETERMINANT).inspect}"
+    puts "  FIRST_CHAR_CANT_START_NEW_PARAG           : #{line.match?(FIRST_CHAR_CANT_START_NEW_PARAG).inspect}"
     puts "  END_WITH_DETERMINANT    : #{line.match?(END_WITH_DETERMINANT).inspect}"
     puts "  OPENED_PAIR_NOT_CLOSED : #{line.match?(OPENED_PAIR_NOT_CLOSED).inspect}"
   end
@@ -318,6 +359,9 @@ class << self
         .gsub(/  +/,' ')
         .gsub(/\t/, ' ')
     end
+
+    text = text.gsub(/\( /, '(')
+    text = text.gsub(/ ([\),])/, '\1')
 
     if debug?
       puts "\n\n\nAFTER FINALIZE".bleu

@@ -23,8 +23,10 @@ class SVGFile
     # être affiché (donc avec quelques retours chariots inopportuns)
     # 
     texte = get_texte_brut
-    ExtractedFile.save_in_file_debug("texte_brut", texte)
-
+    if is_page_to_debug?
+      ExtractedFile.save_in_file_debug("texte_brut", texte)
+    end
+    
     # 
     # On envoie ce texte en traitement, pour qu'il soit parfaitement
     # abouti et puisse être retourné.
@@ -199,7 +201,9 @@ class SVGFile
       end
     end
 
-    ExtractedFile.save_in_file_debug("groupes-non-sorted", groupes.pretty_inspect)
+    if is_page_to_debug?
+      ExtractedFile.save_in_file_debug("groupes-non-sorted", groupes.pretty_inspect)
+    end
     ExtractedFile.save_in_file_debug("groupes-non-sorted.c.", groupes_to_code(groupes))
 
     # 
@@ -241,7 +245,9 @@ class SVGFile
     end
 
     #@debug
-    # ExtractedFile.save_in_file_debug("textes-sorted", textes.pretty_inspect)
+    if is_page_to_debug?
+      ExtractedFile.save_in_file_debug("textes-sorted", textes.pretty_inspect)
+    end
     ExtractedFile.save_in_file_debug("textes-sorted.c.", textes_to_code(textes))
 
     # 
@@ -264,7 +270,9 @@ class SVGFile
     end
 
     #@debug
-    # ExtractedFile.save_in_file_debug("textes-finaux", textes.pretty_inspect)
+    if is_page_to_debug?
+      ExtractedFile.save_in_file_debug("textes-finaux", textes.pretty_inspect)
+    end
     ExtractedFile.save_in_file_debug("textes-finaux.c.", textes_to_code(textes))
 
     # 
@@ -296,11 +304,16 @@ class SVGFile
         if is_page_to_debug?
           puts "x: #{jst(dtext[:x])} y: #{jst(dtext[:y])} dx: #{jst(dx)} dy: #{jst(dy)} text: #{dtext[:text]}".bleu
         end
-        if dy.abs < y_tolerance
-          txt = dtext[:text]
-          txt = " #{txt}" unless Options.no_space_before?(txt)
-          texte_entier[-1] << txt
-          next # pour ne pas ajouter ce texte après
+        if dy.abs < y_tolerance 
+          if dtext[:x] > lastx
+            if is_page_to_debug?
+              puts "  => Collé au précédent"
+            end
+            txt = dtext[:text]
+            txt = " #{txt}" unless Options.no_space_before?(txt)
+            texte_entier[-1] << txt
+            next # pour ne pas ajouter ce texte après
+          end
         elsif dy > title_min_distance
           texte_entier << ""
         end

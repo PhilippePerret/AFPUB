@@ -9,7 +9,6 @@ class << self
   # @return TRUE is page number +number+ is to be processed.
   # 
   def page_in_range?(number)
-    puts "pages_traited = #{pages_traited.inspect}"
     return true if pages_traited == 'ALL' || pages_traited.include?(number)
     unless pages_range.nil?
       pages_range.each do |paire|
