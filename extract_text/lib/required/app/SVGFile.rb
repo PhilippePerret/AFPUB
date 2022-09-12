@@ -27,7 +27,7 @@ class SVGFile
 
     # 
     # On envoie ce texte en traitement, pour qu'il soit parfaitement
-    # abouti et puis être retourné.
+    # abouti et puisse être retourné.
     # 
     texte_fini = TextAffinator.affine(texte)
 
@@ -241,7 +241,7 @@ class SVGFile
     end
 
     #@debug
-    ExtractedFile.save_in_file_debug("textes-sorted", textes.pretty_inspect)
+    # ExtractedFile.save_in_file_debug("textes-sorted", textes.pretty_inspect)
     ExtractedFile.save_in_file_debug("textes-sorted.c.", textes_to_code(textes))
 
     # 
@@ -263,12 +263,68 @@ class SVGFile
       end
     end
 
+    #@debug
+    # ExtractedFile.save_in_file_debug("textes-finaux", textes.pretty_inspect)
+    ExtractedFile.save_in_file_debug("textes-finaux.c.", textes_to_code(textes))
+
     # 
     # On peut maintenant faire un texte de tous ces groupes
     # et le retourner
+    # Mais avant, on va ajouter une ligne vide lorsqu'il y a un
+    # écart net entre deux lignes et, dans TextAffinator, d'interdire
+    # la glue lorsque deux paragraphes sont séparés par une ligne
+    # vide.
     # 
-    textes.map { |dtext| dtext[:text] }.join("\n")
+    texte_entier = []
+    lastx = nil
+    lasty = nil
+    title_min_distance = config[:title_min_distance]
+    y_tolerance = config[:y_tolerance]
+    if is_page_to_debug?
+      puts "\n\nPositionnement des textes".bleu
+      puts "-------------------------".bleu
+      puts "(de la page #{page_number})".bleu
+      puts "x = position depuis la gauche, y = position depuis le haut".bleu
+      puts "dx = différence horizontale avec le texte précédent".bleu
+      puts "dy = différence verticale avec le texte précédent".bleu
+      puts "\n\n"
+    end
+    textes.each do |dtext|
+      unless lasty.nil?
+        dx = dtext[:x] - lastx
+        dy = dtext[:y] - lasty
+        if is_page_to_debug?
+          puts "x: #{jst(dtext[:x])} y: #{jst(dtext[:y])} dx: #{jst(dx)} dy: #{jst(dy)} text: #{dtext[:text]}".bleu
+        end
+        if dy.abs < y_tolerance
+          txt = dtext[:text]
+          txt = " #{txt}" unless Options.no_space_before?(txt)
+          texte_entier[-1] << txt
+          next # pour ne pas ajouter ce texte après
+        elsif dy > title_min_distance
+          texte_entier << ""
+        end
+      end
+      texte_entier << dtext[:text]
+      lastx, lasty = [dtext[:x], dtext[:y]]
+    end
 
+    texte_entier = texte_entier.join("\n")
+
+    if is_page_to_debug?
+      puts "\n\nTEXTE ENTIER DE LA PAGE #{page_number} :\n#{texte_entier}\n".jaune
+    end
+
+    return texte_entier
+  end
+
+  def jst(nombre, width = 6)
+    nombre.to_s.ljust(width)
+  end
+
+
+  def is_page_to_debug?
+    :TRUE == @ispagetodebug ||= true_or_false(CLI.options[:debug_page] && CLI.options[:debug_page].to_i == page_number)
   end
 
   def is_first_before?(atext, btext)

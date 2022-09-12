@@ -28,12 +28,30 @@
 # cadres sont imbriqués
 #
 :pages_not_ungrouped: []
+#
+# Distance minimale d'un titre
+# ----------------------------
+# Détermine le nombre de pixels, en hauteur, pour déterminer qu'un
+# texte est un titre (et ne peut donc pas être collé à la suite)
+# Correspond aussi à la distance d'un double paragraphe.
+# 
+# Pour le déterminer, on peut utiliser l'option '--debug_page=X' avec
+# X comme numéro de page et trouver la distance en comparant les 
+# deltas qui sont fournis (dy en l'occurrence).
+# 
+:title_min_distance: 90
 # 
 # Tolérance Y
+# -----------
 # Permet de gérer les textes qui peuvent être légèrement au-dessus
 # (comme les exposants) ou les textes légèrement en dessous, pour les
 # considérer comme appartement à la même ligne. La valeur donnée est
 # en pixels
+# 
+# Pour le déterminer, on peut utiliser l'option '--debug_page=X' avec
+# X comme numéro de page et trouver la distance en comparant les 
+# deltas qui sont fournis (dy en l'occurrence).
+# 
 :y_tolerance: 30
 # 
 # Les pages à traiter

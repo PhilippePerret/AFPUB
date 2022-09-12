@@ -9,12 +9,14 @@ class << self
   # @return TRUE is page number +number+ is to be processed.
   # 
   def page_in_range?(number)
+    puts "pages_traited = #{pages_traited.inspect}"
     return true if pages_traited == 'ALL' || pages_traited.include?(number)
-    return true if pages_range.nil?
-    pages_range.each do |paire|
-      min, max = paire
-      if number >= min && number <= max
-        return true
+    unless pages_range.nil?
+      pages_range.each do |paire|
+        min, max = paire
+        if number >= min && number <= max
+          return true
+        end
       end
     end
     return false
@@ -25,10 +27,10 @@ class << self
     @pages_traited ||= begin
       pgs = config[:pages]
       if pgs.match('-')
-        startp, endp = psg.split('-').map{|n|n.to_i}
+        startp, endp = pgs.split('-').map{|n|n.to_i}
         (startp..endp).to_a
       elsif pgs.match(',')
-        psg.split(',').map{|n|n.to_i}
+        pgs.split(',').map{|n|n.to_i}
       else
         pgs # ALL
       end
@@ -70,6 +72,14 @@ class << self
       return true if text.match?(exclus)
     end
     return false
+  end
+
+  # @return TRUE si +txt+ est un texte devant lequel 
+  # on ne doit pas mettre d'espace
+  NO_SPACE_BEFORE = {'e'=>true, 're'=>true, 'er'=>true, ',' => true, '.' => true}
+  
+  def no_space_before?(txt)
+    return NO_SPACE_BEFORE.key?(txt)
   end
 
   def max_word_per_title
@@ -182,12 +192,13 @@ private
   def get_config
     config = {
       pages: 'ALL',
+      lang:               'en',
       remove_page_number: true,
       add_page_number: true,
       minimum_lineheight: 100,
-      y_tolerance:        30,
+      y_tolerance:        45,
+      title_min_distance: 90,
       column_width:       0,
-      lang:               'en',
       max_word_per_title: 3,
       not_paragraphs:     [],
       excludes:           [],

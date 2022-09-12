@@ -5,6 +5,11 @@ class ExtractedFile
     
     attr_accessor :current_svg_file
 
+    def init
+      Options.load_document_configuration
+      Options.define_errors_and_messages  
+    end
+
     ##
     # = main point d'entrée =
     # 
@@ -83,8 +88,7 @@ class ExtractedFile
   end
 
   def init
-    Options.load_document_configuration
-    Options.define_errors_and_messages
+    self.class.init
     self.class.remove_debug_folder_or_create
     SVGFile.remove_texts_folder
   end
@@ -117,6 +121,7 @@ class ExtractedFile
         # In range of files?
         # 
         if not Options.page_in_range?(svg_file.page_number)
+
           verbose? && puts((MESSAGES[:page_out_of_range] % [svg_file.page_number]).bleu)
           next
         end
